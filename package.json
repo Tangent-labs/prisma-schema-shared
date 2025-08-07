@@ -2,8 +2,8 @@
   "name": "@tangent/prisma-schema",
   "version": "1.0.0",
   "description": "Shared Prisma schema for multiple repositories",
-  "main": "prisma.schema",
-  "files": ["prisma.schema"],
+  "main": "schema.prisma",
+  "files": ["schema.prisma"],
   "license": "MIT",
   "private": false,
   "publishConfig": {
