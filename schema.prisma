@@ -470,7 +470,6 @@ model user_boost {
   multiplier   Decimal   @db.Decimal(4, 2)
   start_at     DateTime  @db.Timestamptz(6)
   end_at       DateTime? @db.Timestamptz(6)
-  created_at   DateTime  @default(now()) @db.Timestamptz(6)
 
   @@index([user_address, start_at])
   @@schema("points")
