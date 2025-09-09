@@ -394,6 +394,7 @@ model tracked_erc20 {
   task            task[]
   transfer_events transfer_events[]
   price_feeds     price_feeds[]
+  total_supplies  total_supplies[]
 
   @@schema("points")
 }
@@ -488,3 +489,39 @@ model boost_subscribers {
   
   @@schema("points")
 }
+
+model gauge_controllers {
+  id            BigInt       @id @default(autoincrement())
+  gauge_address String       @db.VarChar
+  gauge_pools   gauge_pools[]
+  @@schema("points")
+} 
+
+model gauge_pools {
+  id                    BigInt            @id @default(autoincrement())
+  gauge_address         gauge_controllers @relation(fields: [gauge_controllers_id], references: [id])
+  gauge_controllers_id  BigInt            
+  points_rate           Int
+  gauge_votes           gauges_votes[]
+  @@schema("points")
+} 
+
+model gauges_votes {
+  id                    BigInt            @id @default(autoincrement())
+  user_address          String            @db.VarChar
+  gauge_pool            gauge_pools      @relation(fields: [gauge_pool_id], references: [id])
+  gauge_pool_id         BigInt            
+  @@schema("points")
+} 
+
+
+model total_supplies {
+  id                    BigInt             @id @default(autoincrement())
+  token_id              BigInt            
+  token                 tracked_erc20      @relation(fields: [token_id], references: [id])
+  timestamp             DateTime
+  // Need a composite index on tokenID and timestamp
+  @@index([token_id, timestamp])
+  @@schema("points")
+} 
+
