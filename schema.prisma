@@ -1,5 +1,5 @@
 generator prisma {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -42,7 +42,7 @@ model market_global_data {
   id            BigInt      @id(map: "global_data_and_aprs_markets_history_pkey") @default(autoincrement())
   market        usg_markets @relation(fields: [market_id], references: [id])
   market_id     BigInt
-  timestamp     DateTime @db.Timestamp
+  timestamp     DateTime    @db.Timestamp
   apr_projected Json
   apr_current   Json
   tvl_usd       Float
@@ -92,7 +92,7 @@ model borrow {
   receiver        String      @db.VarChar
   borrowed_amount String      @db.VarChar
   debt_shares     String      @db.VarChar
-  block_date      DateTime @db.Timestamp
+  block_date      DateTime    @db.Timestamp
   block_id        Int
   tx_hash         String      @db.VarChar(66)
 
@@ -107,7 +107,7 @@ model deposit {
   market_id     BigInt
   account       String      @db.VarChar
   staked_amount String      @db.VarChar
-  block_date    DateTime @db.Timestamp
+  block_date    DateTime    @db.Timestamp
   block_id      Int
   tx_hash       String      @db.VarChar(66)
 
@@ -124,7 +124,7 @@ model zap_deposit {
   staked_amount String      @db.VarChar
   token_in      String      @db.VarChar
   amount_in     String      @db.VarChar
-  block_date    DateTime @db.Timestamp
+  block_date    DateTime    @db.Timestamp
   block_id      Int
   tx_hash       String      @db.VarChar(66)
 
@@ -141,7 +141,7 @@ model deposit_and_borrow {
   staked_amount String      @db.VarChar
   borrow_amount String      @db.VarChar
   debt_shares   String      @db.VarChar
-  block_date    DateTime @db.Timestamp
+  block_date    DateTime    @db.Timestamp
   block_id      Int
   tx_hash       String      @db.VarChar(66)
 
@@ -160,7 +160,7 @@ model zap_deposit_and_borrow {
   debt_shares   String      @db.VarChar
   token_in      String      @db.VarChar
   amount_in     String      @db.VarChar
-  block_date    DateTime @db.Timestamp
+  block_date    DateTime    @db.Timestamp
   block_id      Int
   tx_hash       String      @db.VarChar(66)
 
@@ -175,7 +175,7 @@ model withdraw {
   market_id        BigInt
   account          String      @db.VarChar
   withdrawn_amount String      @db.VarChar
-  block_date       DateTime @db.Timestamp
+  block_date       DateTime    @db.Timestamp
   block_id         Int
   tx_hash          String      @db.VarChar(66)
 
@@ -192,7 +192,7 @@ model repay {
   repayer       String      @db.VarChar
   repaid_amount String      @db.VarChar
   debt_shares   String      @db.VarChar
-  block_date    DateTime @db.Timestamp
+  block_date    DateTime    @db.Timestamp
   block_id      Int
   tx_hash       String      @db.VarChar(66)
 
@@ -209,7 +209,7 @@ model repay_and_withdraw {
   repaid_amount    String      @db.VarChar
   withdrawn_amount String      @db.VarChar
   debt_shares      String      @db.VarChar
-  block_date       DateTime @db.Timestamp
+  block_date       DateTime    @db.Timestamp
   block_id         Int
   tx_hash          String      @db.VarChar(66)
 
@@ -228,7 +228,7 @@ model zap_repay {
   debt_shares   String      @db.VarChar
   token_in      String      @db.VarChar
   amount_in     String      @db.VarChar
-  block_date    DateTime @db.Timestamp
+  block_date    DateTime    @db.Timestamp
   block_id      Int
   tx_hash       String      @db.VarChar(66)
 
@@ -247,7 +247,7 @@ model zap_repay_and_withdraw {
   debt_shares      String      @db.VarChar
   token_in         String      @db.VarChar
   amount_in        String      @db.VarChar
-  block_date       DateTime @db.Timestamp
+  block_date       DateTime    @db.Timestamp
   block_id         Int
   tx_hash          String      @db.VarChar(66)
 
@@ -265,7 +265,7 @@ model leverage {
   collat_bought   String      @db.VarChar
   borrowed_amount String      @db.VarChar
   debt_shares     String      @db.VarChar
-  block_date      DateTime @db.Timestamp
+  block_date      DateTime    @db.Timestamp
   block_id        Int
   tx_hash         String      @db.VarChar(66)
 
@@ -286,7 +286,7 @@ model zap_leverage {
   debt_shares        String      @db.VarChar
   token_in           String      @db.VarChar
   amount_in          String      @db.VarChar
-  block_date         DateTime @db.Timestamp
+  block_date         DateTime    @db.Timestamp
   block_id           Int
   tx_hash            String      @db.VarChar(66)
 
@@ -305,7 +305,7 @@ model liquidate {
   collateral_liquidated String      @db.VarChar
   liquidator            String      @db.VarChar
   debt_shares           String      @db.VarChar
-  block_date            DateTime @db.Timestamp
+  block_date            DateTime    @db.Timestamp
   block_id              Int
   tx_hash               String      @db.VarChar(66)
 
@@ -323,7 +323,7 @@ model self_liquidate {
   collateral_liquidated String      @db.VarChar
   liquidator            String      @db.VarChar
   debt_shares           String      @db.VarChar
-  block_date            DateTime @db.Timestamp
+  block_date            DateTime    @db.Timestamp
   block_id              Int
   tx_hash               String      @db.VarChar(66)
 
@@ -339,7 +339,7 @@ model seize_collateral {
   account           String      @db.VarChar
   bad_debt          String      @db.VarChar
   collateral_seized String      @db.VarChar
-  block_date        DateTime @db.Timestamp
+  block_date        DateTime    @db.Timestamp
   block_id          Int
   tx_hash           String      @db.VarChar(66)
 
@@ -349,13 +349,14 @@ model seize_collateral {
 }
 
 model user_tasks {
-  id           BigInt       @id(map: "user_tasks_pkey") @default(autoincrement())
-  task         task         @relation(fields: [task_id], references: [id])
+  id           BigInt    @id(map: "user_tasks_pkey") @default(autoincrement())
+  task         task      @relation(fields: [task_id], references: [id])
   task_id      BigInt
-  user_address String       @db.VarChar
-  start        DateTime     @db.Timestamp
-  closed       DateTime?    @db.Timestamp
+  user_address String    @db.VarChar
+  start        DateTime  @db.Timestamp
+  closed       DateTime? @db.Timestamp
   amount       String
+
   @@index([task_id, user_address])
   @@index([start, closed], map: "user_tasks_start_closed_idx")
   @@index([task_id, start, closed], map: "user_tasks_taskid_start_closed_idx")
@@ -369,7 +370,7 @@ model task {
   protocol      String
   token         tracked_erc20 @relation(fields: [token_address], references: [address])
   token_address String
-  point_rate    Decimal   @db.Decimal(8, 6)
+  point_rate    Decimal       @db.Decimal(8, 6)
   description   String
   url           String
   is_active     Boolean       @default(true)
@@ -404,7 +405,7 @@ model transfer_events {
   from          String        @db.VarChar
   to            String        @db.VarChar
   amount        String        @db.VarChar
-  block_date    DateTime @db.Timestamp  
+  block_date    DateTime      @db.Timestamp
   block_id      Int
   tx_hash       String        @db.VarChar(66)
 
@@ -438,13 +439,14 @@ model referral_usages {
 }
 
 model user_points {
-  id           BigInt     @id @default(autoincrement())
-  user_address String     @db.VarChar
-  user         user       @relation(fields: [user_address], references: [address])
-  task_id      BigInt
-  task         task       @relation(fields: [task_id], references: [id])
-  points       BigInt
-  booster_points       BigInt
+  id             BigInt @id @default(autoincrement())
+  user_address   String @db.VarChar
+  user           user   @relation(fields: [user_address], references: [address])
+  task_id        BigInt
+  task           task   @relation(fields: [task_id], references: [id])
+  points         BigInt
+  booster_points BigInt
+
   @@unique([user_address, task_id], map: "user_points_task_user_uk")
   @@schema("points")
 }
@@ -453,11 +455,12 @@ model price_feeds {
   id            BigInt        @id(map: "price_feeds_pkey") @default(autoincrement())
   token_address tracked_erc20 @relation(fields: [token], references: [address])
   token         String
-  timestamp     DateTime @db.Timestamp
-  price_usd     Decimal     @db.Decimal(12, 4)
+  timestamp     DateTime      @db.Timestamp
+  price_usd     Decimal       @db.Decimal(12, 4)
+
   // index added in  src\sql-functions\index_include_price.sql because include is not supported by prisma.
   @@schema("points")
-} 
+}
 
 model user_boost {
   id           BigInt    @id @default(autoincrement())
@@ -467,22 +470,72 @@ model user_boost {
   start_at     DateTime  @db.Timestamp
   end_at       DateTime? @db.Timestamp
   created_at   DateTime  @default(now()) @db.Timestamp
+
   @@index([user_address, start_at, end_at], map: "user_boost_user_start_end_idx")
   @@index([user_address, start_at])
   @@schema("points")
 }
 
 model offchain_boost_user {
-  id           BigInt    @id @default(autoincrement())
-  user_address String    @db.VarChar
-  type         String    @db.VarChar
+  id           BigInt @id @default(autoincrement())
+  user_address String @db.VarChar
+  type         String @db.VarChar
 
   @@schema("points")
 }
 
 model boost_subscribers {
-  id           BigInt    @id @default(autoincrement())
-  user_address String    @db.VarChar
-  
+  id           BigInt @id @default(autoincrement())
+  user_address String @db.VarChar
+
+  @@schema("points")
+}
+
+model processed_proposal {
+  id           BigInt   @id @default(autoincrement())
+  proposal_id  String   @unique @db.VarChar
+  title        String?  @db.VarChar
+  processed_at DateTime @default(now()) @db.Timestamp
+
+  @@schema("points")
+}
+
+model user_vote_tasks {
+  id            BigInt    @id @default(autoincrement())
+  vote_task     vote_task @relation(fields: [vote_task_id], references: [id])
+  vote_task_id  BigInt
+  user_address  String    @db.VarChar
+  proposal_id   String    @db.VarChar
+  validation_at DateTime  @db.Timestamp
+  voting_power  Float
+  points        BigInt
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@unique([vote_task_id, user_address, proposal_id])
+  @@index([user_address])
+  @@index([proposal_id])
+  @@index([validation_at])
+  @@schema("points")
+}
+
+model vote_task {
+  id              BigInt            @id(map: "vote_task_pkey") @default(autoincrement())
+  name            String
+  organisation    String            @db.VarChar
+  protocol        String
+  point_rate      Float
+  description     String
+  url             String
+  is_active       Boolean           @default(true)
+  user_vote_tasks user_vote_tasks[]
+
+  @@schema("points")
+}
+
+model last_vote_processed_block {
+  block_id Int @id(map: "last_vote_processed_block_pkey") @default(autoincrement())
+
   @@schema("points")
 }
