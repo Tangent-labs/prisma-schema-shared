@@ -463,12 +463,23 @@ model price_feeds {
   @@schema("points")
 }
 
+// llamaApi / curveApi / pendleApi /ERC4626 
+
+enum PriceSourceType {
+  llamaApi
+  curveApi
+  pendleApi
+  ERC4626
+
+  @@schema("points")
+}
+
 model price_source {
-  id         BigInt   @id(map: "price_source_pkey") @default(autoincrement())
-  address    String   @db.VarChar
-  name       String   @db.VarChar
-  type       String   @db.VarChar
-  ref_token  String?  @db.VarChar
+  id         BigInt         @id(map: "price_source_pkey") @default(autoincrement())
+  address    String         @db.VarChar
+  name       String         @db.VarChar
+  type       PriceSourceType
+  ref_token  String?        @db.VarChar
   @@schema("points")
 }
 
