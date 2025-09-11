@@ -590,6 +590,7 @@ model total_supplies {
   id                    BigInt             @id @default(autoincrement())
   token_id              BigInt            
   token                 tracked_erc20      @relation(fields: [token_id], references: [id])
+  total_supply          String             @db.VarChar
   timestamp             DateTime
   // Need a composite index on tokenID and timestamp
   @@index([token_id, timestamp])
