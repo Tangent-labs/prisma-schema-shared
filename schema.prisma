@@ -393,6 +393,7 @@ model tracked_erc20 {
   symbol          String?
   task            task[]
   transfer_events transfer_events[]
+  price_feeds     price_feeds[]
   total_supplies  total_supplies[]
 
   @@schema("points")
@@ -452,34 +453,13 @@ model user_points {
 }
 
 model price_feeds {
-  id            BigInt   @id(map: "price_feeds_pkey") @default(autoincrement())
-  address String   @db.VarChar
-  timestamp     DateTime @db.Timestamp
-  price_usd     Decimal  @db.Decimal(12, 4)
-  price_source  price_source @relation(fields: [address], references: [address])
+  id            BigInt        @id(map: "price_feeds_pkey") @default(autoincrement())
+  token_address tracked_erc20 @relation(fields: [token], references: [address])
+  token         String
+  timestamp     DateTime      @db.Timestamp
+  price_usd     Decimal       @db.Decimal(12, 4)
 
   // index added in  src\sql-functions\index_include_price.sql because include is not supported by prisma.
-  @@schema("points")
-}
-
-// llamaApi / curveApi / pendleApi /ERC4626 
-
-enum PriceSourceType {
-  llamaApi
-  curveApi
-  pendleApi
-  ERC4626
-
-  @@schema("points")
-}
-
-model price_source {
-  id         BigInt         @id(map: "price_source_pkey") @default(autoincrement())
-  address    String         @db.VarChar @unique
-  name       String         @db.VarChar
-  type       PriceSourceType
-  ref_token  String?        @db.VarChar
-  price_feeds price_feeds[]
   @@schema("points")
 }
 
@@ -590,7 +570,6 @@ model total_supplies {
   id                    BigInt             @id @default(autoincrement())
   token_id              BigInt            
   token                 tracked_erc20      @relation(fields: [token_id], references: [id])
-  total_supply          String             @db.VarChar
   timestamp             DateTime
   // Need a composite index on tokenID and timestamp
   @@index([token_id, timestamp])
