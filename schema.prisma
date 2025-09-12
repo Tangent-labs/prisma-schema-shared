@@ -457,7 +457,6 @@ model price_feeds {
   address String   @db.VarChar
   timestamp     DateTime @db.Timestamp
   price_usd     Decimal  @db.Decimal(12, 4)
-  price_source  price_source @relation(fields: [address], references: [address])
 
   // index added in  src\sql-functions\index_include_price.sql because include is not supported by prisma.
   @@schema("points")
@@ -480,7 +479,6 @@ model price_source {
   name       String         @db.VarChar
   type       PriceSourceType
   ref_token  String?        @db.VarChar
-  price_feeds price_feeds[]
   @@schema("points")
 }
 
