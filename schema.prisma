@@ -573,6 +573,6 @@ model total_supplies {
   timestamp             DateTime
   // Need a composite index on tokenID and timestamp
   @@index([token_id, timestamp])
-  @@schema("points")
+  @@schema("global")
 } 
 
