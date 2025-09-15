@@ -571,6 +571,7 @@ model total_supplies {
   token_id              BigInt            
   token                 tracked_erc20      @relation(fields: [token_id], references: [id])
   timestamp             DateTime
+  total_supply          String       @db.VarChar
   // Need a composite index on tokenID and timestamp
   @@index([token_id, timestamp])
   @@schema("global")
