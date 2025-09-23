@@ -56,6 +56,18 @@ model market_global_data {
   @@schema("global")
 }
 
+model total_supplies {
+  id           BigInt        @id @default(autoincrement())
+  token_id     BigInt
+  token        tracked_erc20 @relation(fields: [token_id], references: [id])
+  timestamp    DateTime
+  total_supply String        @db.VarChar
+
+  // Need a composite index on tokenID and timestamp
+  @@index([token_id, timestamp])
+  @@schema("global")
+}
+
 model usg_markets {
   id                     BigInt                   @id(map: "markets_contracts_pkey") @default(autoincrement())
   contract_name          String                   @db.VarChar
@@ -502,26 +514,6 @@ model processed_proposal {
   @@schema("points")
 }
 
-model vote_user_tasks {
-  id            BigInt    @id @default(autoincrement())
-  vote_task     vote_task @relation(fields: [vote_task_id], references: [id])
-  vote_task_id  BigInt
-  user_address  String    @db.VarChar
-  proposal_id   String    @db.VarChar
-  validation_at DateTime  @db.Timestamp
-  voting_power  Float
-  points        BigInt
-
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-
-  @@unique([vote_task_id, user_address, proposal_id])
-  @@index([user_address])
-  @@index([proposal_id])
-  @@index([validation_at])
-  @@schema("points")
-}
-
 model vote_task {
   id              BigInt            @id(map: "vote_task_pkey") @default(autoincrement())
   name            String
@@ -530,11 +522,29 @@ model vote_task {
   point_rate      Float
   description     String
   url             String
-  is_active       Boolean           @default(true)
+  is_onchain      Boolean           
   vote_user_tasks vote_user_tasks[]
+  gauge_pools     gauge_pools[]
 
   @@schema("points")
 }
+
+
+model vote_user_tasks {
+  id            BigInt    @id @default(autoincrement())
+  vote_task     vote_task @relation(fields: [vote_task_id], references: [id])
+  vote_task_id  BigInt
+  user_address  String    @db.VarChar
+  proposal_id   String    @db.VarChar
+  voting_power  Float
+  points        BigInt
+  
+  @@unique([vote_task_id, user_address, proposal_id])
+  @@index([user_address])
+  @@index([proposal_id])
+  @@schema("points")
+}
+
 
 model last_vote_processed_block {
   block_id Int @id(map: "last_vote_processed_block_pkey") @default(autoincrement())
@@ -543,19 +553,24 @@ model last_vote_processed_block {
 }
 
 model gauge_controllers {
-  id            BigInt        @id @default(autoincrement())
-  gauge_address String        @db.VarChar
-  gauge_pools   gauge_pools[]
-
+  id                 BigInt        @id @default(autoincrement())
+  controller_address String        @db.VarChar
+  gauge_pools        gauge_pools[]
+  voter_to_exclude   voter_to_exclude[]
   @@schema("points")
 }
 
 model gauge_pools {
   id                   BigInt            @id @default(autoincrement())
-  gauge_address        gauge_controllers @relation(fields: [gauge_controllers_id], references: [id])
+  gauge_address        String            @db.VarChar
   gauge_controllers_id BigInt
-  points_rate          Int
+  gauge_controller     gauge_controllers @relation(fields: [gauge_controllers_id], references: [id])
   gauge_votes          gauges_votes[]
+
+  vote_task_id         BigInt
+  vote_task            vote_task @relation(fields: [vote_task_id], references: [id])
+  @@index([vote_task_id], map: "gauge_pools_index_per_vote_task_id")
+  @@index([gauge_controllers_id], map: "gauge_pools_index_per_gauge_controllers_id")
 
   @@schema("points")
 }
@@ -563,20 +578,24 @@ model gauge_pools {
 model gauges_votes {
   id            BigInt      @id @default(autoincrement())
   user_address  String      @db.VarChar
-  gauge_pool    gauge_pools @relation(fields: [gauge_pool_id], references: [id])
   gauge_pool_id BigInt
+  gauge_pool    gauge_pools @relation(fields: [gauge_pool_id], references: [id])
+
+  @@index([gauge_pool_id], map: "gauge_votes_index_per_gauge_pool_id")
+
 
   @@schema("points")
 }
+model voter_to_exclude {
+  id            BigInt      @id @default(autoincrement())
+  user_address  String      @db.VarChar
+  gauge_controllers_id BigInt
+  gauge_controller        gauge_controllers @relation(fields: [gauge_controllers_id], references: [id])
 
-model total_supplies {
-  id           BigInt        @id @default(autoincrement())
-  token_id     BigInt
-  token        tracked_erc20 @relation(fields: [token_id], references: [id])
-  timestamp    DateTime
-  total_supply String        @db.VarChar
+  @@index([gauge_controllers_id], map: "voter_to_exclude_index_per_gauge_controller_id")
 
-  // Need a composite index on tokenID and timestamp
-  @@index([token_id, timestamp])
-  @@schema("global")
+  @@schema("points")
+
 }
+
+
