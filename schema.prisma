@@ -478,7 +478,7 @@ model price_source {
   address    String         @db.VarChar @unique
   name       String         @db.VarChar
   type       PriceSourceType
-  ref_token  String?        @db.VarChar
+  reference  String?        @db.VarChar
   @@schema("points")
 }
 
