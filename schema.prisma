@@ -646,6 +646,7 @@ model points_bot_log {
   execution_key String   @db.Uuid
   errorLevel    ErrorLevel
   action        PointsBotAction
+  message       String? @db.VarChar
   data          Json
   date          DateTime @default(now()) @db.Timestamp
 
