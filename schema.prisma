@@ -8,7 +8,7 @@ datasource db {
   schemas  = ["events", "global", "points"]
 }
 
-model global_blocks {
+model event_blocks {
   block_id   BigInt    @id(map: "blocks_pkey") @default(autoincrement())
   created_at DateTime? @db.Timestamp
 
@@ -394,8 +394,8 @@ model lp_task {
   @@schema("points")
 }
 
-model last_processed_block {
-  block_id Int @id(map: "last_processed_block_pkey") @default(autoincrement())
+model lp_points_block {
+  block_id BigInt @id(map: "lp_points_block_pkey") @default(autoincrement())
 
   @@schema("points")
 }
@@ -566,8 +566,8 @@ model vote_user_tasks {
 }
 
 
-model last_vote_processed_block {
-  block_id Int @id(map: "last_vote_processed_block_pkey") @default(autoincrement())
+model votes_points_blocks {
+  block_id BigInt @id(map: "votes_points_blocks_pkey") @default(autoincrement())
 
   @@schema("points")
 }
