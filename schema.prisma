@@ -38,7 +38,23 @@ model liquidation_bot_log {
   @@schema("global")
 }
 
+model latest_global_data {
+  id            BigInt      @id(map: "latest_global_data_pkey") @default(autoincrement())
+  market        usg_markets @relation(fields: [market_id], references: [id])
+  market_id     BigInt
+  timestamp     DateTime    @db.Timestamp
+  apr_projected Json
+  apr_current   Json
+  tvl_usd       Float
+  tvl_amount    Float
+  total_debt    Float
+  bad_debt      Float
+  oracle_price  Float
+  ir_apy        Float
+  reward_cut    Float
 
+  @@schema("global")
+}
 
 model market_global_data {
   id            BigInt      @id(map: "global_data_and_aprs_markets_history_pkey") @default(autoincrement())
@@ -93,6 +109,7 @@ model usg_markets {
   liquidate              liquidate[]
   self_liquidate         self_liquidate[]
   seize_collateral       seize_collateral[]
+  latest_global_data     latest_global_data[]
 
   @@index([contract_address], map: "markets_creations_address_idx")
   @@schema("events")
@@ -467,10 +484,10 @@ model lp_user_points {
 }
 
 model price_feeds {
-  id            BigInt   @id(map: "price_feeds_pkey") @default(autoincrement())
-  address String   @db.VarChar
-  timestamp     DateTime @db.Timestamp
-  price_usd     Decimal  @db.Decimal(12, 4)
+  id        BigInt   @id(map: "price_feeds_pkey") @default(autoincrement())
+  address   String   @db.VarChar
+  timestamp DateTime @db.Timestamp
+  price_usd Decimal  @db.Decimal(12, 4)
 
   // index added in  src\sql-functions\index_include_price.sql because include is not supported by prisma.
   @@schema("points")
@@ -488,11 +505,12 @@ enum PriceSourceType {
 }
 
 model price_source {
-  id         BigInt         @id(map: "price_source_pkey") @default(autoincrement())
-  address    String         @db.VarChar @unique
-  name       String         @db.VarChar
-  type       PriceSourceType
-  reference  String?        @db.VarChar
+  id        BigInt          @id(map: "price_source_pkey") @default(autoincrement())
+  address   String          @unique @db.VarChar
+  name      String          @db.VarChar
+  type      PriceSourceType
+  reference String?         @db.VarChar
+
   @@schema("points")
 }
 
@@ -542,29 +560,27 @@ model vote_task {
   point_rate      Float
   description     String
   url             String
-  is_onchain      Boolean           
+  is_onchain      Boolean
   vote_user_tasks vote_user_tasks[]
   gauge_pools     gauge_pools[]
 
   @@schema("points")
 }
 
-
 model vote_user_tasks {
-  id            BigInt    @id @default(autoincrement())
-  vote_task     vote_task @relation(fields: [vote_task_id], references: [id])
-  vote_task_id  BigInt
-  user_address  String    @db.VarChar
-  proposal_id   String    @db.VarChar
-  voting_power  Float
-  points        BigInt
-  
+  id           BigInt    @id @default(autoincrement())
+  vote_task    vote_task @relation(fields: [vote_task_id], references: [id])
+  vote_task_id BigInt
+  user_address String    @db.VarChar
+  proposal_id  String    @db.VarChar
+  voting_power Float
+  points       BigInt
+
   @@unique([vote_task_id, user_address, proposal_id])
   @@index([user_address])
   @@index([proposal_id])
   @@schema("points")
 }
-
 
 model votes_points_blocks {
   block_id BigInt @id(map: "votes_points_blocks_pkey") @default(autoincrement())
@@ -573,10 +589,11 @@ model votes_points_blocks {
 }
 
 model gauge_controllers {
-  id                 BigInt        @id @default(autoincrement())
-  controller_address String        @db.VarChar
+  id                 BigInt             @id @default(autoincrement())
+  controller_address String             @db.VarChar
   gauge_pools        gauge_pools[]
   voter_to_exclude   voter_to_exclude[]
+
   @@schema("points")
 }
 
@@ -587,11 +604,11 @@ model gauge_pools {
   gauge_controller     gauge_controllers @relation(fields: [gauge_controllers_id], references: [id])
   gauge_votes          gauges_votes[]
 
-  vote_task_id         BigInt
-  vote_task            vote_task @relation(fields: [vote_task_id], references: [id])
+  vote_task_id BigInt
+  vote_task    vote_task @relation(fields: [vote_task_id], references: [id])
+
   @@index([vote_task_id], map: "gauge_pools_index_per_vote_task_id")
   @@index([gauge_controllers_id], map: "gauge_pools_index_per_gauge_controllers_id")
-
   @@schema("points")
 }
 
@@ -602,22 +619,18 @@ model gauges_votes {
   gauge_pool    gauge_pools @relation(fields: [gauge_pool_id], references: [id])
 
   @@index([gauge_pool_id], map: "gauge_votes_index_per_gauge_pool_id")
-
-
   @@schema("points")
 }
+
 model voter_to_exclude {
-  id            BigInt      @id @default(autoincrement())
-  user_address  String      @db.VarChar
+  id                   BigInt            @id @default(autoincrement())
+  user_address         String            @db.VarChar
   gauge_controllers_id BigInt
-  gauge_controller        gauge_controllers @relation(fields: [gauge_controllers_id], references: [id])
+  gauge_controller     gauge_controllers @relation(fields: [gauge_controllers_id], references: [id])
 
   @@index([gauge_controllers_id], map: "voter_to_exclude_index_per_gauge_controller_id")
-
   @@schema("points")
-
 }
-
 
 enum PointsBotAction {
   POINTS_GENERAL
@@ -627,33 +640,32 @@ enum PointsBotAction {
   POINTS_CALCULATE_POINTS
   POINTS_PROCESS_VOTE_ONCHAIN
   POINTS_PROCESS_VOTE
-   @@schema("points")
+
+  @@schema("points")
 }
 
 enum ErrorLevel {
   INFO
   WARNING
   ERROR
+
   @@schema("points")
 }
-
 
 // will be used to track the no problem execution of differents processes
 /// and error with is_error = true, 
 // execution_key can be used to match an error with is parent process
 // data will be used to track the data of the process/error
 model points_bot_log {
-  id            BigInt   @id @default(autoincrement())
-  execution_key String   @db.Uuid
+  id            BigInt          @id @default(autoincrement())
+  execution_key String          @db.Uuid
   errorLevel    ErrorLevel
   action        PointsBotAction
-  message       String? @db.VarChar
+  message       String?         @db.VarChar
   data          Json
-  date          DateTime @default(now()) @db.Timestamp
+  date          DateTime        @default(now()) @db.Timestamp
 
   @@index([execution_key])
   @@index([date])
   @@schema("points")
 }
-
-
