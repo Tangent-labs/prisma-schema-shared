@@ -93,6 +93,8 @@ model usg_markets {
   liquidate              liquidate[]
   self_liquidate         self_liquidate[]
   seize_collateral       seize_collateral[]
+  migrate_from           migrate_from[]
+  migrate_to             migrate_to[]
 
   @@index([contract_address], map: "markets_creations_address_idx")
   @@schema("events")
@@ -359,6 +361,41 @@ model seize_collateral {
 
   @@index([account], map: "seize_collateral_account")
   @@index([market_id], map: "seize_collateral_market_id")
+  @@schema("events")
+}
+
+model migrate_from {
+  id                BigInt      @id(map: "migrate_from_pkey") @default(autoincrement())
+  market            usg_markets @relation(fields: [market_id], references: [id])
+  market_id         BigInt
+  account           String      @db.VarChar
+  collat_withdrawn  String      @db.VarChar
+  debt_removed      String      @db.VarChar
+  debt_repaid       String      @db.VarChar
+  debt_shares       String      @db.VarChar
+  block_date        DateTime    @db.Timestamp
+  block_id          Int
+  tx_hash           String      @db.VarChar(66)
+
+  @@index([account], map: "migrate_from_account")
+  @@index([market_id], map: "migrate_from_market_id")
+  @@schema("events")
+}
+
+model migrate_to {
+  id                BigInt      @id(map: "migrate_to_pkey") @default(autoincrement())
+  market            usg_markets @relation(fields: [market_id], references: [id])
+  market_id         BigInt
+  account           String      @db.VarChar
+  collat_added      String      @db.VarChar
+  debt_added        String      @db.VarChar
+  debt_shares       String      @db.VarChar
+  block_date        DateTime    @db.Timestamp
+  block_id          Int
+  tx_hash           String      @db.VarChar(66)
+
+  @@index([account], map: "migrate_to_account")
+  @@index([market_id], map: "migrate_to_market_id")
   @@schema("events")
 }
 
