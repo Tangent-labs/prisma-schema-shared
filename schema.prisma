@@ -416,6 +416,21 @@ model migrate_to {
   @@schema("events")
 }
 
+ model process_report{
+    id                BigInt      @id(map: "process_report_pkey") @default(autoincrement())
+    token             String @db.VarChar
+    gain              String @db.VarChar
+    currentDebtAfter  String @db.VarChar
+    block_date        DateTime @db.Timestamp 
+    block_id          Int
+    tx_hash           String @db.VarChar(66)
+    @@index([token], map: "process_report_token_idx")
+    @@index([block_date], map: "process_report_block_date_idx")
+    @@schema("events")
+ }
+
+
+
 model lp_user_tasks {
   id           BigInt    @id(map: "lp_user_tasks_pkey") @default(autoincrement())
   lp_task      lp_task   @relation(fields: [task_id], references: [id])
