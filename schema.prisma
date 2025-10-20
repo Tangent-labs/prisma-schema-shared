@@ -555,6 +555,12 @@ model lp_user_points {
   @@schema("points")
 }
 
+model lp_points_users_excluded {
+  id            BigInt        @id @default(autoincrement())
+  user          String        @db.VarChar
+  @@schema("events")
+}
+
 model price_feeds {
   id        BigInt   @id(map: "price_feeds_pkey") @default(autoincrement())
   address   String   @db.VarChar
