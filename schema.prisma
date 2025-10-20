@@ -56,6 +56,26 @@ model latest_global_data {
   @@schema("global")
 }
 
+model global_indicators {
+  id            BigInt      @id() @default(autoincrement())
+  key           String      @db.VarChar
+  args        String      @db.VarChar
+  values      global_indicators_values[]
+   @@schema("global")
+}
+
+
+model global_indicators_values {
+  id            BigInt      @id() @default(autoincrement())
+  timestamp     DateTime    @db.Timestamp
+  value         Float
+  global_indicator_id BigInt
+  global_indicator global_indicators @relation(fields: [global_indicator_id], references: [id])
+  @@schema("global")
+}
+
+
+
 model market_global_data {
   id            BigInt      @id(map: "global_data_and_aprs_markets_history_pkey") @default(autoincrement())
   market        usg_markets @relation(fields: [market_id], references: [id])
