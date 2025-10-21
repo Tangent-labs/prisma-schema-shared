@@ -467,18 +467,20 @@ model lp_user_tasks {
 }
 
 model lp_task {
-  id             BigInt           @id(map: "task_pkey") @default(autoincrement())
-  name           String
-  action_type    String           @db.VarChar
-  protocol       String
-  token          tracked_erc20    @relation(fields: [token_address], references: [address])
-  token_address  String
-  point_rate     Decimal          @db.Decimal(8, 6)
-  description    String
-  url            String
-  is_active      Boolean          @default(true)
-  lp_user_tasks  lp_user_tasks[]
-  lp_user_points lp_user_points[]
+  id               BigInt           @id(map: "task_pkey") @default(autoincrement())
+  name             String
+  action_type      String           @db.VarChar
+  protocol         String
+  token            tracked_erc20    @relation(fields: [token_address], references: [address])
+  token_address    String
+  point_rate       Decimal          @db.Decimal(8, 6)
+  description      String
+  url              String
+  is_active        Boolean          @default(true)
+  price_source_id  BigInt
+  price_source     price_source     @relation(fields: [price_source_id], references: [id])       
+  lp_user_tasks    lp_user_tasks[]
+  lp_user_points   lp_user_points[]
 
   @@schema("points")
 }
@@ -561,13 +563,35 @@ model lp_points_users_excluded {
   @@schema("events")
 }
 
+model price_source {
+  id                 BigInt            @id @default(autoincrement())
+  name               String            @db.VarChar
+  address            String            @db.VarChar
+  reference          String?           @db.VarChar
+  type               PriceSourceType
+  lp_tasks           lp_task[]
+  price_feeds        price_feeds[] 
+  last_price_feeds   last_price_feeds?
+  @@schema("points")
+}
+
 model price_feeds {
-  id        BigInt   @id(map: "price_feeds_pkey") @default(autoincrement())
-  address   String   @db.VarChar
-  timestamp DateTime @db.Timestamp
-  price_usd Decimal  @db.Decimal(12, 4)
+  id                BigInt        @id @default(autoincrement())
+  timestamp         DateTime      @db.Timestamp
+  price_usd         Decimal       @db.Decimal(12, 4)
+  price_source      price_source  @relation(fields: [price_source_id], references: [id])
+  price_source_id   BigInt
 
   // index added in  src\sql-functions\index_include_price.sql because include is not supported by prisma.
+
+  @@schema("points")
+}
+
+model last_price_feeds {
+  id                BigInt        @id @default(autoincrement())
+  price_usd         Decimal       @db.Decimal(12, 4)
+  price_source      price_source  @relation(fields: [price_source_id], references: [id])
+  price_source_id   BigInt        @unique
   @@schema("points")
 }
 
@@ -578,16 +602,8 @@ enum PriceSourceType {
   curveApi
   pendleApi
   ERC4626
-
-  @@schema("points")
-}
-
-model price_source {
-  id        BigInt          @id(map: "price_source_pkey") @default(autoincrement())
-  address   String          @unique @db.VarChar
-  name      String          @db.VarChar
-  type      PriceSourceType
-  reference String?         @db.VarChar
+  chainview
+  market
 
   @@schema("points")
 }
