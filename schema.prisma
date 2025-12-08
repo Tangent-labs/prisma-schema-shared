@@ -517,6 +517,26 @@ model transfer_events {
   @@schema("events")
 }
 
+model add_liquidity_events {
+  id              BigInt        @id @default(autoincrement())
+  token           usg_lp_keys   @relation(fields: [usg_lp_id], references: [id])
+  usg_lp_id       String        @db.VarChar
+  provider        String        @db.VarChar
+  token0_amount   String        @db.VarChar
+  token1_amount   String        @db.VarChar
+  block_date      DateTime      @db.Timestamp
+  block_id        Int
+  tx_hash         String        @db.VarChar(66)
+  @@schema("events")
+}
+
+model usg_lp_keys {
+    id            BigInt        @id @default(autoincrement())
+    token_address String        @db.VarChar
+    lp_name       String        @db.VarChar
+    @@schema("events")
+}
+
 model user {
   id                   BigInt            @id(map: "user_pkey") @default(autoincrement())
   address              String            @unique
@@ -768,6 +788,23 @@ model points_bot_log {
   date          DateTime        @default(now()) @db.Timestamp
 
   @@index([execution_key])
+  @@index([date])
+  @@schema("points")
+}
+
+
+// will be used to track the no problem execution of differents processes
+/// and error with is_error = true, 
+// execution_key can be used to match an error with is parent process
+// data will be used to track the data of the process/error
+model onchain_tx_bot_log {
+  id            BigInt          @id @default(autoincrement())
+  errorLevel    ErrorLevel
+  action        PointsBotAction
+  message       String?         @db.VarChar
+  data          Json
+  date          DateTime        @default(now()) @db.Timestamp
+
   @@index([date])
   @@schema("points")
 }
