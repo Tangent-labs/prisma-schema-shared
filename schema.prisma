@@ -792,6 +792,12 @@ model onchain_tx_bot_log {
 
 // PREDEPOSIT
 
+model predeposit_block {
+  block_id BigInt @id @default(autoincrement())
+
+  @@schema("predeposit")
+}
+
 model add_liquidity_events {
   id            BigInt      @id @default(autoincrement())
   usg_lp        usg_lp_keys @relation(fields: [usg_lp_id], references: [id])
