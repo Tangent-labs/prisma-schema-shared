@@ -829,7 +829,7 @@ enum PredepositState {
 }
 
 model predeposit_state {
-  state PredepositState
+  state PredepositState @unique
 
   @@schema("predeposit")
 }
