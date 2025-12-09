@@ -4,6 +4,7 @@ generator prisma {
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
   schemas  = ["events", "global", "points"]
 }
 
