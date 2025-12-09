@@ -5,7 +5,7 @@ generator prisma {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-  schemas  = ["events", "global", "points"]
+  schemas  = ["events", "global", "points", "predeposit"]
 }
 
 model event_blocks {
@@ -824,6 +824,8 @@ enum PredepositState {
   deposit_public
   retention
   finished
+
+  @@schema("predeposit")
 }
 
 model predeposit_state {
