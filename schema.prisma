@@ -4,7 +4,6 @@ generator prisma {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
   schemas  = ["events", "global", "points"]
 }
 
@@ -531,9 +530,10 @@ model add_liquidity_events {
 }
 
 model usg_lp_keys {
-    id            BigInt        @id @default(autoincrement())
-    token_address String        @db.VarChar
-    lp_name       String        @db.VarChar
+    id                BigInt                   @id @default(autoincrement())
+    token_address     String                   @db.VarChar
+    lp_name           String                   @db.VarChar
+    add_liquidity     add_liquidity_events[]   
     @@schema("events")
 }
 
