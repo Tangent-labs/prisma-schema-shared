@@ -820,7 +820,7 @@ model usg_lp_keys {
   lp_name           String                 @db.VarChar
   add_liquidity     add_liquidity_events[]
   accountedBalances accounted_balances[]
-  totalDepositeds   total_deposited[]
+  totalDepositeds   accounted_total[]
 
   @@schema("predeposit")
 }
@@ -840,6 +840,14 @@ model predeposit_state {
   @@schema("predeposit")
 }
 
+model predeposit_users {
+  user_address String  @db.VarChar
+  signature    String? @db.VarChar
+  is_private   Boolean
+
+  @@schema("predeposit")
+}
+
 model accounted_balances {
   id           BigInt      @id @default(autoincrement())
   usg_lp       usg_lp_keys @relation(fields: [usg_lp_id], references: [id])
@@ -850,11 +858,12 @@ model accounted_balances {
   @@schema("predeposit")
 }
 
-model total_deposited {
+model accounted_total {
   id        BigInt      @id @default(autoincrement())
   usg_lp    usg_lp_keys @relation(fields: [usg_lp_id], references: [id])
   usg_lp_id BigInt
   total_lp  String      @db.VarChar
+  cap_lp    String      @db.VarChar
 
   @@schema("predeposit")
 }
