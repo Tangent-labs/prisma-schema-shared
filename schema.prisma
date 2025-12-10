@@ -841,10 +841,11 @@ model predeposit_state {
 }
 
 model predeposit_users {
-  user_address String  @db.VarChar
+  user_address String  @unique @db.VarChar
   signature    String? @db.VarChar
   is_private   Boolean
 
+  @@index([user_address])
   @@schema("predeposit")
 }
 
