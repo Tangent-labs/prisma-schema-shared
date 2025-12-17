@@ -640,13 +640,6 @@ model onchain_boost_user {
   @@schema("points")
 }
 
-model boost_subscribers {
-  id           BigInt @id @default(autoincrement())
-  user_address String @db.VarChar
-
-  @@schema("points")
-}
-
 model processed_proposal {
   id           BigInt   @id @default(autoincrement())
   proposal_id  String   @unique @db.VarChar
