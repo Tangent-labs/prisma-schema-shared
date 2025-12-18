@@ -624,11 +624,11 @@ model user_boost {
   @@schema("points")
 }
 
-model boost_subscribers {
+model onchain_boost_user {
   id           BigInt @id @default(autoincrement())
   user_address String @db.VarChar
+  type         String @db.VarChar
 
-  @@unique([user_address])
   @@schema("points")
 }
 
@@ -640,11 +640,11 @@ model offchain_boost_user {
   @@schema("points")
 }
 
-model onchain_boost_user {
+model boost_subscribers {
   id           BigInt @id @default(autoincrement())
   user_address String @db.VarChar
-  type         String @db.VarChar
 
+  @@unique([user_address])
   @@schema("points")
 }
 
