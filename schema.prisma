@@ -796,6 +796,7 @@ model onchain_tx_bot_log {
 model predeposit_block {
   block_id BigInt @id @default(autoincrement())
 
+  @@index([block_id])
   @@schema("predeposit")
 }
 
@@ -811,7 +812,7 @@ model add_liquidity_events {
   block_id      Int
   tx_hash       String      @db.VarChar(66)
 
-  @@index([block_id])
+  @@index([provider, block_id])
   @@schema("predeposit")
 }
 
@@ -848,7 +849,7 @@ model predeposit_users {
   signature    String  @db.VarChar
   is_private   Boolean
 
-  @@index([user_address])
+  @@index([is_private])
   @@schema("predeposit")
 }
 
@@ -859,6 +860,7 @@ model accounted_balances {
   user_address String      @db.VarChar
   balance_lp   String      @db.VarChar
 
+  @@index([usg_lp_id, user_address])
   @@schema("predeposit")
 }
 
