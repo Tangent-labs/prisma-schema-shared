@@ -815,12 +815,14 @@ model add_liquidity_events {
 }
 
 model usg_lp_keys {
-  id                BigInt                 @id @default(autoincrement())
-  lp_address        String                 @db.VarChar
-  lp_name           String                 @db.VarChar
-  add_liquidity     add_liquidity_events[]
-  accountedBalances accounted_balances[]
-  totalDepositeds   accounted_total[]
+  id                         BigInt                       @id @default(autoincrement())
+  lp_address                 String                       @db.VarChar
+  lp_name                    String                       @db.VarChar
+  add_liquidity              add_liquidity_events[]
+  accountedBalances          accounted_balances[]
+  totalDepositeds            accounted_total[]
+  accountedTotalHistories    accounted_total_history[]
+  accountedBalancesHistories accounted_balances_history[]
 
   @@schema("predeposit")
 }
@@ -842,7 +844,7 @@ model predeposit_state {
 
 model predeposit_users {
   user_address String  @unique @db.VarChar
-  signature    String? @db.VarChar
+  signature    String  @db.VarChar
   is_private   Boolean
 
   @@index([user_address])
@@ -859,12 +861,34 @@ model accounted_balances {
   @@schema("predeposit")
 }
 
+model accounted_balances_history {
+  id           BigInt      @id @default(autoincrement())
+  usg_lp       usg_lp_keys @relation(fields: [usg_lp_id], references: [id])
+  usg_lp_id    BigInt
+  user_address String      @db.VarChar
+  balance_lp   String      @db.VarChar
+  date         DateTime    @db.Timestamp
+
+  @@schema("predeposit")
+}
+
 model accounted_total {
   id        BigInt      @id @default(autoincrement())
   usg_lp    usg_lp_keys @relation(fields: [usg_lp_id], references: [id])
   usg_lp_id BigInt
   total_lp  String      @db.VarChar
   cap_lp    String      @db.VarChar
+
+  @@schema("predeposit")
+}
+
+model accounted_total_history {
+  id        BigInt      @id @default(autoincrement())
+  usg_lp    usg_lp_keys @relation(fields: [usg_lp_id], references: [id])
+  usg_lp_id BigInt
+  total_lp  String      @db.VarChar
+  cap_lp    String      @db.VarChar
+  date      DateTime    @db.Timestamp
 
   @@schema("predeposit")
 }
