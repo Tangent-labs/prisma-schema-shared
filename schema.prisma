@@ -845,11 +845,13 @@ model predeposit_state {
 }
 
 model predeposit_users {
-  user_address String  @unique @db.VarChar
-  signature    String  @db.VarChar
-  is_private   Boolean
+  id             BigInt    @id @default(autoincrement())
+  user_address   String    @unique @db.VarChar
+  signature      String?   @db.VarChar
+  is_private     Boolean
+  signature_date DateTime? @db.Timestamp
 
-  @@index([is_private])
+  @@index([is_private, signature])
   @@schema("predeposit")
 }
 
