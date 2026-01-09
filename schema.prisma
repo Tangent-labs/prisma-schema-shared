@@ -658,15 +658,16 @@ model processed_proposal {
 }
 
 model vote_task {
-  id              BigInt            @id @default(autoincrement())
-  organisation    String            @db.VarChar
-  protocol        String            @db.VarChar
-  point_rate      Float
-  description     String            @db.VarChar
-  url             String            @db.VarChar
-  is_onchain      Boolean
-  vote_user_tasks vote_user_tasks[]
-  gauge_pools     gauge_pools[]
+  id                     BigInt                    @id @default(autoincrement())
+  organisation           String                    @db.VarChar
+  protocol               String                    @db.VarChar
+  point_rate             Float
+  description            String                    @db.VarChar
+  url                    String                    @db.VarChar
+  is_onchain             Boolean
+  voteUserTasks          vote_user_tasks[]
+  gaugePools             gauge_pools?
+  snapshotScoringChoices snapshot_scoring_choices?
 
   @@schema("points")
 }
@@ -696,20 +697,25 @@ model votes_points_blocks {
 
 model snapshot_organisations {
   id                    BigInt                      @id @default(autoincrement())
-  key                   String
-  url                   String
-  proposal_title_search String
+  key                   String                      @db.VarChar
+  url                   String                      @db.VarChar
+  proposal_title_search String                      @db.VarChar
   scoringChoices        snapshot_scoring_choices[]
   votersToExclude       snapshot_voter_to_exclude[]
 
+  @@index([id])
   @@schema("points")
 }
 
 model snapshot_scoring_choices {
   id                       BigInt                 @id @default(autoincrement())
+  choice_name              String                 @db.VarChar
   snapshotOrganisations    snapshot_organisations @relation(fields: [snapshot_organisation_id], references: [id])
   snapshot_organisation_id BigInt
+  VoteTask                 vote_task              @relation(fields: [vote_task_id], references: [id])
+  vote_task_id             BigInt
 
+  @@index([snapshot_organisation_id])
   @@schema("points")
 }
 
@@ -719,6 +725,7 @@ model snapshot_voter_to_exclude {
   snapshotOrganisation     snapshot_organisations @relation(fields: [snapshot_organisation_id], references: [id])
   snapshot_organisation_id BigInt
 
+  @@index([snapshot_organisation_id])
   @@schema("points")
 }
 
