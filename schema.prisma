@@ -659,12 +659,11 @@ model processed_proposal {
 
 model vote_task {
   id              BigInt            @id(map: "vote_task_pkey") @default(autoincrement())
-  name            String
   organisation    String            @db.VarChar
-  protocol        String
+  protocol        String            @db.VarChar
   point_rate      Float
-  description     String
-  url             String
+  description     String            @db.VarChar
+  url             String            @db.VarChar
   is_onchain      Boolean
   vote_user_tasks vote_user_tasks[]
   gauge_pools     gauge_pools[]
