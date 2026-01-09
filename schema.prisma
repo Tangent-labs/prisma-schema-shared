@@ -658,7 +658,7 @@ model processed_proposal {
 }
 
 model vote_task {
-  id              BigInt            @id(map: "vote_task_pkey") @default(autoincrement())
+  id              BigInt            @id @default(autoincrement())
   organisation    String            @db.VarChar
   protocol        String            @db.VarChar
   point_rate      Float
@@ -687,16 +687,48 @@ model vote_user_tasks {
 }
 
 model votes_points_blocks {
-  block_id BigInt @id(map: "votes_points_blocks_pkey") @default(autoincrement())
+  block_id BigInt @id @default(autoincrement())
 
   @@schema("points")
 }
 
+// OFFCHAIN
+
+model snapshot_organisations {
+  id                    BigInt                      @id @default(autoincrement())
+  key                   String
+  url                   String
+  proposal_title_search String
+  scoringChoices        snapshot_scoring_choices[]
+  votersToExclude       snapshot_voter_to_exclude[]
+
+  @@schema("points")
+}
+
+model snapshot_scoring_choices {
+  id                       BigInt                 @id @default(autoincrement())
+  snapshotOrganisations    snapshot_organisations @relation(fields: [snapshot_organisation_id], references: [id])
+  snapshot_organisation_id BigInt
+
+  @@schema("points")
+}
+
+model snapshot_voter_to_exclude {
+  id                       BigInt                 @id @default(autoincrement())
+  user_address             String                 @db.VarChar
+  snapshotOrganisation     snapshot_organisations @relation(fields: [snapshot_organisation_id], references: [id])
+  snapshot_organisation_id BigInt
+
+  @@schema("points")
+}
+
+// ONCHAIN
+
 model gauge_controllers {
-  id                 BigInt             @id @default(autoincrement())
-  controller_address String             @db.VarChar
+  id                 BigInt                    @id @default(autoincrement())
+  controller_address String                    @db.VarChar
   gauge_pools        gauge_pools[]
-  voter_to_exclude   voter_to_exclude[]
+  voter_to_exclude   gauges_voter_to_exclude[]
 
   @@schema("points")
 }
@@ -707,9 +739,8 @@ model gauge_pools {
   gauge_controllers_id BigInt
   gauge_controller     gauge_controllers @relation(fields: [gauge_controllers_id], references: [id])
   gauge_votes          gauges_votes[]
-
-  vote_task_id BigInt
-  vote_task    vote_task @relation(fields: [vote_task_id], references: [id])
+  vote_task_id         BigInt
+  vote_task            vote_task         @relation(fields: [vote_task_id], references: [id])
 
   @@index([vote_task_id], map: "gauge_pools_index_per_vote_task_id")
   @@index([gauge_controllers_id], map: "gauge_pools_index_per_gauge_controllers_id")
@@ -726,7 +757,7 @@ model gauges_votes {
   @@schema("points")
 }
 
-model voter_to_exclude {
+model gauges_voter_to_exclude {
   id                   BigInt            @id @default(autoincrement())
   user_address         String            @db.VarChar
   gauge_controllers_id BigInt
