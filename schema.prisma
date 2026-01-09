@@ -713,7 +713,7 @@ model snapshot_scoring_choices {
   snapshotOrganisations    snapshot_organisations @relation(fields: [snapshot_organisation_id], references: [id])
   snapshot_organisation_id BigInt
   VoteTask                 vote_task              @relation(fields: [vote_task_id], references: [id])
-  vote_task_id             BigInt
+  vote_task_id             BigInt                 @unique
 
   @@index([snapshot_organisation_id])
   @@schema("points")
@@ -746,11 +746,11 @@ model gauge_pools {
   gauge_controllers_id BigInt
   gauge_controller     gauge_controllers @relation(fields: [gauge_controllers_id], references: [id])
   gauge_votes          gauges_votes[]
-  vote_task_id         BigInt
+  vote_task_id         BigInt            @unique
   vote_task            vote_task         @relation(fields: [vote_task_id], references: [id])
 
-  @@index([vote_task_id], map: "gauge_pools_index_per_vote_task_id")
-  @@index([gauge_controllers_id], map: "gauge_pools_index_per_gauge_controllers_id")
+  @@index([vote_task_id])
+  @@index([gauge_controllers_id])
   @@schema("points")
 }
 
@@ -760,7 +760,7 @@ model gauges_votes {
   gauge_pool_id BigInt
   gauge_pool    gauge_pools @relation(fields: [gauge_pool_id], references: [id])
 
-  @@index([gauge_pool_id], map: "gauge_votes_index_per_gauge_pool_id")
+  @@index([gauge_pool_id])
   @@schema("points")
 }
 
@@ -770,7 +770,7 @@ model gauges_voter_to_exclude {
   gauge_controllers_id BigInt
   gauge_controller     gauge_controllers @relation(fields: [gauge_controllers_id], references: [id])
 
-  @@index([gauge_controllers_id], map: "voter_to_exclude_index_per_gauge_controller_id")
+  @@index([gauge_controllers_id])
   @@schema("points")
 }
 
