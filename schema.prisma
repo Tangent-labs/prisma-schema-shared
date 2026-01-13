@@ -648,15 +648,6 @@ model boost_subscribers {
   @@schema("points")
 }
 
-model processed_proposal {
-  id           BigInt   @id @default(autoincrement())
-  proposal_id  String   @unique @db.VarChar
-  title        String?  @db.VarChar
-  processed_at DateTime @default(now()) @db.Timestamp
-
-  @@schema("points")
-}
-
 model vote_task {
   id                     BigInt                    @id @default(autoincrement())
   organisation           String                    @db.VarChar
@@ -680,10 +671,12 @@ model vote_user_tasks {
   proposal_id  String    @db.VarChar
   voting_power Float
   points       BigInt
+  date         DateTime  @db.Timestamp
 
   @@unique([vote_task_id, user_address, proposal_id])
   @@index([user_address])
   @@index([proposal_id])
+  @@index([vote_task_id])
   @@schema("points")
 }
 
@@ -694,6 +687,15 @@ model votes_points_blocks {
 }
 
 // OFFCHAIN
+
+model snapshot_processed_proposal {
+  id           BigInt   @id @default(autoincrement())
+  proposal_id  String   @unique @db.VarChar
+  title        String?  @db.VarChar
+  processed_at DateTime @default(now()) @db.Timestamp
+
+  @@schema("points")
+}
 
 model snapshot_organisations {
   id                    BigInt                      @id @default(autoincrement())
