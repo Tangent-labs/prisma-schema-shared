@@ -724,6 +724,7 @@ model snapshot_scoring_choices {
 model snapshot_voter_to_exclude {
   id                       BigInt                 @id @default(autoincrement())
   user_address             String                 @db.VarChar
+  name                     String                 @db.VarChar
   snapshotOrganisation     snapshot_organisations @relation(fields: [snapshot_organisation_id], references: [id])
   snapshot_organisation_id BigInt
 
@@ -769,6 +770,7 @@ model gauges_votes {
 model gauges_voter_to_exclude {
   id                   BigInt            @id @default(autoincrement())
   user_address         String            @db.VarChar
+  name                 String            @db.VarChar
   gauge_controllers_id BigInt
   gauge_controller     gauge_controllers @relation(fields: [gauge_controllers_id], references: [id])
 
