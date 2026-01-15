@@ -660,23 +660,42 @@ model vote_task {
   gaugePools             gauge_pools?
   snapshotScoringChoices snapshot_scoring_choices?
 
+  @@index([is_onchain, id]) // Used in api, getTaskUserVote, in lastOffChainEpoch & lastOnChainEpoch CTE
   @@schema("points")
 }
 
 model vote_user_tasks {
-  id           BigInt    @id @default(autoincrement())
-  vote_task    vote_task @relation(fields: [vote_task_id], references: [id])
-  vote_task_id BigInt
-  user_address String    @db.VarChar
-  proposal_id  String    @db.VarChar
-  voting_power Float
-  points       BigInt
-  date         DateTime  @db.Timestamp
+  id                                BigInt                         @id @default(autoincrement())
+  vote_task                         vote_task                      @relation(fields: [vote_task_id], references: [id])
+  vote_task_id                      BigInt
+  user_address                      String                         @db.VarChar
+  processedProposals                votes_epoch_processed_proposal @relation(fields: [votes_epoch_processed_proposal_id], references: [id])
+  votes_epoch_processed_proposal_id BigInt
+  voting_power                      Float
+  points                            BigInt
+  date                              DateTime                       @db.Timestamp
 
-  @@unique([vote_task_id, user_address, proposal_id])
-  @@index([user_address])
-  @@index([proposal_id])
-  @@index([vote_task_id])
+  @@unique([vote_task_id, user_address, votes_epoch_processed_proposal_id])
+  @@index([user_address, vote_task_id, votes_epoch_processed_proposal_id, date(sort: Desc)])
+  @@index([user_address, vote_task_id])
+  @@schema("points")
+}
+
+model votes_epoch_processed_proposal {
+  id                       BigInt                  @id @default(autoincrement())
+  epoch_id                 String                  @db.VarChar
+  epoch_name               String?                 @db.VarChar
+  voteUserTasks            vote_user_tasks[]
+  processed_at             DateTime                @db.Timestamp
+  snapshotOrganisation     snapshot_organisations? @relation(fields: [snapshot_organisation_id], references: [id])
+  snapshot_organisation_id BigInt?
+  gaugeController          gauge_controllers?      @relation(fields: [gauge_controller_id], references: [id])
+  gauge_controller_id      BigInt?
+
+  @@index([gauge_controller_id])
+  @@index([snapshot_organisation_id])
+  @@index([processed_at])
+  @@index([id])
   @@schema("points")
 }
 
@@ -688,20 +707,12 @@ model votes_points_blocks {
 
 // OFFCHAIN
 
-model snapshot_processed_proposal {
-  id           BigInt   @id @default(autoincrement())
-  proposal_id  String   @unique @db.VarChar
-  title        String?  @db.VarChar
-  processed_at DateTime @default(now()) @db.Timestamp
-
-  @@schema("points")
-}
-
 model snapshot_organisations {
-  id                    BigInt                      @id @default(autoincrement())
-  key                   String                      @db.VarChar
-  url                   String                      @db.VarChar
-  proposal_title_search String                      @db.VarChar
+  id                    BigInt                           @id @default(autoincrement())
+  key                   String                           @db.VarChar
+  url                   String                           @db.VarChar
+  proposal_title_search String                           @db.VarChar
+  proposals             votes_epoch_processed_proposal[]
   scoringChoices        snapshot_scoring_choices[]
   votersToExclude       snapshot_voter_to_exclude[]
 
@@ -717,7 +728,7 @@ model snapshot_scoring_choices {
   VoteTask                 vote_task              @relation(fields: [vote_task_id], references: [id])
   vote_task_id             BigInt                 @unique
 
-  @@index([snapshot_organisation_id])
+  @@index([vote_task_id, snapshot_organisation_id])
   @@schema("points")
 }
 
@@ -735,10 +746,11 @@ model snapshot_voter_to_exclude {
 // ONCHAIN
 
 model gauge_controllers {
-  id                 BigInt                    @id @default(autoincrement())
-  controller_address String                    @db.VarChar
-  gauge_pools        gauge_pools[]
-  voter_to_exclude   gauges_voter_to_exclude[]
+  id                           BigInt                           @id @default(autoincrement())
+  controller_address           String                           @db.VarChar
+  gauge_pools                  gauge_pools[]
+  voter_to_exclude             gauges_voter_to_exclude[]
+  votesEpochProcessedProposals votes_epoch_processed_proposal[]
 
   @@schema("points")
 }
