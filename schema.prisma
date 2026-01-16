@@ -700,7 +700,8 @@ model votes_epoch_processed_proposal {
 }
 
 model votes_points_blocks {
-  block_id BigInt @id @default(autoincrement())
+  block_id   BigInt   @id @default(autoincrement())
+  block_date DateTime @db.Timestamp
 
   @@schema("points")
 }
