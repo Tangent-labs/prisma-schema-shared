@@ -158,10 +158,10 @@ model wrapped_stable_history {
 model usg_global_history {
   id              BigInt   @id @default(autoincrement())
   date            DateTime @db.Timestamp
-  markets         Float
-  susg            Float
-  wrapped_stables Float
-  peg_keepers     Float
+  tvl_markets     Float
+  tvl_susg        Float
+  tvl_wstables    Float
+  tvl_peg_keepers Float
   total_tvl       Float
   total_debt      Float
 
