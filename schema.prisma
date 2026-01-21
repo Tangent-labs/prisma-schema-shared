@@ -115,6 +115,7 @@ model peg_keeper {
   pegKeeperHistories peg_keeper_history[]
 
   @@index([id])
+  @@schema("global")
 }
 
 model peg_keeper_history {
@@ -126,6 +127,7 @@ model peg_keeper_history {
   peg_keeper_id BigInt
 
   @@index([peg_keeper_id, date])
+  @@schema("global")
 }
 
 model wrapped_stable {
@@ -138,6 +140,7 @@ model wrapped_stable {
   wrappedStableHistories wrapped_stable_history[]
 
   @@index([id])
+  @@schema("global")
 }
 
 model wrapped_stable_history {
@@ -149,6 +152,7 @@ model wrapped_stable_history {
   wrapped_stable_id BigInt
 
   @@index([wrapped_stable_id, date])
+  @@schema("global")
 }
 
 model usg_global_history {
@@ -163,6 +167,7 @@ model usg_global_history {
 
   // To be able to search by date easily
   @@index([date])
+  @@schema("global")
 }
 
 model usg_markets {
@@ -171,6 +176,7 @@ model usg_markets {
   collateral_address     String                   @db.VarChar
   contract_address       String                   @db.VarChar
   contract_type          String                   @db.VarChar
+  is_active              Boolean
   market_global_data     market_global_data[]
   active_borrowers       active_borrowers[]
   borrow                 borrow[]
@@ -192,7 +198,7 @@ model usg_markets {
   migrate_to             migrate_to[]
   latest_global_data     latest_global_data[]
 
-  @@index([contract_address], map: "markets_creations_address_idx")
+  @@index([contract_address])
   @@schema("events")
 }
 
