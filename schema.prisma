@@ -105,6 +105,66 @@ model total_supplies {
   @@schema("global")
 }
 
+model peg_keeper {
+  id                 BigInt               @id @default(autoincrement())
+  address            String               @db.VarChar
+  stable_address     String               @db.VarChar
+  stable_name        String               @db.VarChar
+  is_active          Boolean
+  creation_date      DateTime             @db.Timestamp
+  pegKeeperHistories peg_keeper_history[]
+
+  @@index([id])
+}
+
+model peg_keeper_history {
+  id            BigInt     @id @default(autoincrement())
+  date          DateTime   @db.Timestamp
+  balance       Float
+  total_value   Float
+  pegKeeper     peg_keeper @relation(fields: [peg_keeper_id], references: [id])
+  peg_keeper_id BigInt
+
+  @@index([peg_keeper_id, date])
+}
+
+model wrapped_stable {
+  id                     BigInt                   @id @default(autoincrement())
+  address                String                   @db.VarChar
+  stable_address         String                   @db.VarChar
+  stable_name            String                   @db.VarChar
+  is_active              Boolean
+  creation_date          DateTime                 @db.Timestamp
+  wrappedStableHistories wrapped_stable_history[]
+
+  @@index([id])
+}
+
+model wrapped_stable_history {
+  id                BigInt         @id @default(autoincrement())
+  date              DateTime       @db.Timestamp
+  total_supply      Float
+  total_value       Float
+  wrapped_stable    wrapped_stable @relation(fields: [wrapped_stable_id], references: [id])
+  wrapped_stable_id BigInt
+
+  @@index([wrapped_stable_id, date])
+}
+
+model usg_global_history {
+  id              BigInt   @id @default(autoincrement())
+  date            DateTime @db.Timestamp
+  markets         Float
+  susg            Float
+  wrapped_stables Float
+  peg_keepers     Float
+  total_tvl       Float
+  total_debt      Float
+
+  // To be able to search by date easily
+  @@index([date])
+}
+
 model usg_markets {
   id                     BigInt                   @id(map: "markets_contracts_pkey") @default(autoincrement())
   contract_name          String                   @db.VarChar
