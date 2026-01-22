@@ -108,6 +108,8 @@ model total_supplies {
 model peg_keeper {
   id                 BigInt               @id @default(autoincrement())
   address            String               @db.VarChar
+  lp_address         String               @db.VarChar
+  lp_name            String               @db.VarChar
   stable_address     String               @db.VarChar
   stable_name        String               @db.VarChar
   is_active          Boolean
