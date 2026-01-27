@@ -985,6 +985,7 @@ model accounted_balances {
   user_address String      @db.VarChar
   balance_lp   String      @db.VarChar
 
+  @@unique([usg_lp_id, user_address])
   @@index([usg_lp_id, user_address])
   @@schema("predeposit")
 }
