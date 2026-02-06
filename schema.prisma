@@ -8,11 +8,42 @@ datasource db {
   schemas  = ["events", "global", "points", "predeposit"]
 }
 
-model event_blocks {
-  block_id   BigInt    @id(map: "blocks_pkey") @default(autoincrement())
-  created_at DateTime? @db.Timestamp
+// ========================================
+// =============== GLOBAL ===============
+// ========================================
 
-  @@schema("events")
+model usg_markets {
+  id                     BigInt                   @id(map: "markets_contracts_pkey") @default(autoincrement())
+  contract_name          String                   @db.VarChar
+  collateral_address     String                   @db.VarChar
+  contract_address       String                   @db.VarChar
+  contract_type          String                   @db.VarChar
+  is_active              Boolean
+  create_block           DateTime                 @db.Timestamp
+  create_date            DateTime                 @db.Timestamp
+  market_global_data     market_global_data[]
+  active_borrowers       active_borrowers[]
+  borrow                 borrow[]
+  deposit                deposit[]
+  zap_deposit            zap_deposit[]
+  deposit_and_borrow     deposit_and_borrow[]
+  zap_deposit_and_borrow zap_deposit_and_borrow[]
+  withdraw               withdraw[]
+  repay                  repay[]
+  repay_and_withdraw     repay_and_withdraw[]
+  zap_repay              zap_repay[]
+  zap_repay_and_withdraw zap_repay_and_withdraw[]
+  leverage               leverage[]
+  zap_leverage           zap_leverage[]
+  liquidate              liquidate[]
+  self_liquidate         self_liquidate[]
+  seize_collateral       seize_collateral[]
+  migrate_from           migrate_from[]
+  migrate_to             migrate_to[]
+  latest_global_data     latest_global_data[]
+
+  @@index([contract_address])
+  @@schema("global")
 }
 
 model active_borrowers {
@@ -172,35 +203,14 @@ model usg_global_history {
   @@schema("global")
 }
 
-model usg_markets {
-  id                     BigInt                   @id(map: "markets_contracts_pkey") @default(autoincrement())
-  contract_name          String                   @db.VarChar
-  collateral_address     String                   @db.VarChar
-  contract_address       String                   @db.VarChar
-  contract_type          String                   @db.VarChar
-  is_active              Boolean
-  market_global_data     market_global_data[]
-  active_borrowers       active_borrowers[]
-  borrow                 borrow[]
-  deposit                deposit[]
-  zap_deposit            zap_deposit[]
-  deposit_and_borrow     deposit_and_borrow[]
-  zap_deposit_and_borrow zap_deposit_and_borrow[]
-  withdraw               withdraw[]
-  repay                  repay[]
-  repay_and_withdraw     repay_and_withdraw[]
-  zap_repay              zap_repay[]
-  zap_repay_and_withdraw zap_repay_and_withdraw[]
-  leverage               leverage[]
-  zap_leverage           zap_leverage[]
-  liquidate              liquidate[]
-  self_liquidate         self_liquidate[]
-  seize_collateral       seize_collateral[]
-  migrate_from           migrate_from[]
-  migrate_to             migrate_to[]
-  latest_global_data     latest_global_data[]
+// ========================================
+// =============== EVENTS ===============
+// ========================================
 
-  @@index([contract_address])
+model event_blocks {
+  block_id   BigInt    @id(map: "blocks_pkey") @default(autoincrement())
+  created_at DateTime? @db.Timestamp
+
   @@schema("events")
 }
 
@@ -517,18 +527,55 @@ model process_report {
   @@schema("events")
 }
 
-model lp_user_tasks {
-  id           BigInt    @id(map: "lp_user_tasks_pkey") @default(autoincrement())
-  lp_task      lp_task   @relation(fields: [task_id], references: [id])
-  task_id      BigInt
-  user_address String    @db.VarChar
-  start        DateTime  @db.Timestamp
-  closed       DateTime? @db.Timestamp
-  amount       String
+model transfer_events {
+  id            BigInt        @id @default(autoincrement())
+  token         tracked_erc20 @relation(fields: [token_address], references: [address])
+  token_address String        @db.VarChar
+  from          String        @db.VarChar
+  to            String        @db.VarChar
+  amount        String        @db.VarChar
+  block_date    DateTime      @db.Timestamp
+  block_id      Int
+  tx_hash       String        @db.VarChar(66)
 
-  @@index([task_id, user_address])
-  @@index([start, closed], map: "user_tasks_start_closed_idx")
-  @@index([task_id, start, closed], map: "user_tasks_taskid_start_closed_idx")
+  @@index([block_id])
+  @@schema("events")
+}
+
+// ========================================
+// =============== POINTS ===============
+// ========================================
+
+model user {
+  id                   BigInt            @id(map: "user_pkey") @default(autoincrement())
+  address              String            @unique
+  onboarded            Boolean           @default(false)
+  code                 String?           @unique
+  godsons              referral_usages[] @relation("GodfatherRelation")
+  godfather            referral_usages?  @relation("GodsonRelation")
+  lp_user_points       lp_user_points[]
+  user_boost           user_boost[]
+  lp_referral_points   BigInt            @default(0)
+  vote_referral_points BigInt            @default(0)
+
+  @@schema("points")
+}
+
+model referral_usages {
+  id           BigInt   @id(map: "referral_usages_pkey") @default(autoincrement())
+  godfather_id BigInt
+  godson_id    BigInt
+  used_at      DateTime @default(now()) @db.Timestamp
+  godfather    user     @relation(fields: [godfather_id], references: [id], name: "GodfatherRelation")
+  godson       user     @relation(fields: [godson_id], references: [id], name: "GodsonRelation")
+
+  @@unique(godson_id)
+  @@schema("points")
+}
+
+model lp_points_block {
+  block_id BigInt @id(map: "lp_points_block_pkey") @default(autoincrement())
+
   @@schema("points")
 }
 
@@ -552,9 +599,18 @@ model lp_task {
   @@schema("points")
 }
 
-model lp_points_block {
-  block_id BigInt @id(map: "lp_points_block_pkey") @default(autoincrement())
+model lp_user_tasks {
+  id           BigInt    @id(map: "lp_user_tasks_pkey") @default(autoincrement())
+  lp_task      lp_task   @relation(fields: [task_id], references: [id])
+  task_id      BigInt
+  user_address String    @db.VarChar
+  start_date   DateTime  @db.Timestamp
+  closed_date  DateTime? @db.Timestamp
+  amount       String
 
+  @@index([task_id, user_address])
+  @@index([start_date, closed_date])
+  @@index([task_id, start_date, closed_date])
   @@schema("points")
 }
 
@@ -570,48 +626,6 @@ model tracked_erc20 {
   @@schema("points")
 }
 
-model transfer_events {
-  id            BigInt        @id @default(autoincrement())
-  token         tracked_erc20 @relation(fields: [token_address], references: [address])
-  token_address String        @db.VarChar
-  from          String        @db.VarChar
-  to            String        @db.VarChar
-  amount        String        @db.VarChar
-  block_date    DateTime      @db.Timestamp
-  block_id      Int
-  tx_hash       String        @db.VarChar(66)
-
-  @@index([block_id])
-  @@schema("events")
-}
-
-model user {
-  id                   BigInt            @id(map: "user_pkey") @default(autoincrement())
-  address              String            @unique
-  onboarded            Boolean           @default(false)
-  code                 String?           @unique
-  godsons              referral_usages[] @relation("GodfatherRelation")
-  godfather            referral_usages?  @relation("GodsonRelation")
-  lp_user_points       lp_user_points[]
-  user_boost           user_boost[]
-  lp_referral_points   BigInt            @default(0)
-  vote_referral_points BigInt            @default(0)
-
-  @@schema("global")
-}
-
-model referral_usages {
-  id           BigInt   @id(map: "referral_usages_pkey") @default(autoincrement())
-  godfather_id BigInt
-  godson_id    BigInt
-  used_at      DateTime @default(now()) @db.Timestamp
-  godfather    user     @relation(fields: [godfather_id], references: [id], name: "GodfatherRelation")
-  godson       user     @relation(fields: [godson_id], references: [id], name: "GodsonRelation")
-
-  @@unique(godson_id)
-  @@schema("global")
-}
-
 model lp_user_points {
   id             BigInt  @id @default(autoincrement())
   user_address   String  @db.VarChar
@@ -621,7 +635,7 @@ model lp_user_points {
   points         BigInt
   booster_points BigInt
 
-  @@unique([user_address, task_id], map: "user_points_task_user_uk")
+  @@unique([user_address, task_id])
   @@schema("points")
 }
 
@@ -629,7 +643,7 @@ model lp_points_users_excluded {
   id   BigInt @id @default(autoincrement())
   user String @db.VarChar
 
-  @@schema("events")
+  @@schema("points")
 }
 
 model price_source {
@@ -915,7 +929,9 @@ model onchain_tx_bot_log {
   @@schema("points")
 }
 
-// PREDEPOSIT
+// ========================================
+// =============== PREDEPOSIT =============
+// ========================================
 
 model predeposit_block {
   block_id BigInt @id @default(autoincrement())
