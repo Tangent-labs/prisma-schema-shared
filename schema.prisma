@@ -19,7 +19,7 @@ model usg_markets {
   contract_address       String                   @db.VarChar
   contract_type          String                   @db.VarChar
   is_active              Boolean
-  create_block           DateTime                 @db.Timestamp
+  create_block           BigInt
   create_date            DateTime                 @db.Timestamp
   market_global_data     market_global_data[]
   active_borrowers       active_borrowers[]
