@@ -542,8 +542,9 @@ model lp_task {
   point_rate      Decimal          @db.Decimal(8, 6)
   description     String
   url             String
-  is_active       Boolean          @default(true)
   price_source_id BigInt
+  start_date      DateTime         @db.Timestamp
+  end_date        DateTime?        @db.Timestamp
   price_source    price_source     @relation(fields: [price_source_id], references: [id])
   lp_user_tasks   lp_user_tasks[]
   lp_user_points  lp_user_points[]
