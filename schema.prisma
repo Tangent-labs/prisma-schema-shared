@@ -1,11 +1,11 @@
 generator prisma {
-  provider = "prisma-client-js"
+    provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-  schemas  = ["events", "global", "points", "predeposit"]
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+    schemas  = ["events", "global", "points", "predeposit"]
 }
 
 // ========================================
@@ -13,231 +13,287 @@ datasource db {
 // ========================================
 
 model usg_markets {
-  id                     BigInt                   @id(map: "markets_contracts_pkey") @default(autoincrement())
-  contract_name          String                   @db.VarChar
-  collateral_address     String                   @db.VarChar
-  contract_address       String                   @db.VarChar
-  contract_type          String                   @db.VarChar
-  is_active              Boolean
-  create_block           BigInt
-  create_date            DateTime                 @db.Timestamp
-  market_global_data     market_global_data[]
-  active_borrowers       active_borrowers[]
-  borrow                 borrow[]
-  deposit                deposit[]
-  zap_deposit            zap_deposit[]
-  deposit_and_borrow     deposit_and_borrow[]
-  zap_deposit_and_borrow zap_deposit_and_borrow[]
-  withdraw               withdraw[]
-  repay                  repay[]
-  repay_and_withdraw     repay_and_withdraw[]
-  zap_repay              zap_repay[]
-  zap_repay_and_withdraw zap_repay_and_withdraw[]
-  leverage               leverage[]
-  zap_leverage           zap_leverage[]
-  liquidate              liquidate[]
-  self_liquidate         self_liquidate[]
-  seize_collateral       seize_collateral[]
-  migrate_from           migrate_from[]
-  migrate_to             migrate_to[]
-  latest_global_data     latest_global_data[]
-  position_snapshots     position_snapshots[]
-  market_config          market_config[]
+    id                         BigInt                   @id(map: "markets_contracts_pkey") @default(autoincrement())
+    contract_name              String                   @db.VarChar
+    collateral_address         String                   @db.VarChar
+    contract_address           String                   @db.VarChar
+    contract_type              String                   @db.VarChar
+    is_active                  Boolean
+    create_block               BigInt
+    create_date                DateTime                 @db.Timestamp
+    peg_target_value           Float?
+    alert_threshold_warning_pct Float?
+    alert_threshold_critical_pct Float?
+    market_global_data         market_global_data[]
+    active_borrowers           active_borrowers[]
+    borrow                     borrow[]
+    deposit                    deposit[]
+    zap_deposit                zap_deposit[]
+    deposit_and_borrow         deposit_and_borrow[]
+    zap_deposit_and_borrow     zap_deposit_and_borrow[]
+    withdraw                   withdraw[]
+    repay                      repay[]
+    repay_and_withdraw         repay_and_withdraw[]
+    zap_repay                  zap_repay[]
+    zap_repay_and_withdraw     zap_repay_and_withdraw[]
+    leverage                   leverage[]
+    zap_leverage               zap_leverage[]
+    liquidate                  liquidate[]
+    self_liquidate             self_liquidate[]
+    seize_collateral           seize_collateral[]
+    migrate_from               migrate_from[]
+    migrate_to                 migrate_to[]
+    latest_global_data         latest_global_data[]
+    position_snapshots         position_snapshots[]
+    market_config              market_config[]
+    oracle_sanity_snapshots    oracle_sanity_snapshots[]
+    peg_sanity_snapshots       peg_sanity_snapshots[]
 
-  @@index([contract_address])
-  @@schema("global")
+    @@index([contract_address])
+    @@schema("global")
 }
 
 model position_snapshots {
-  id                 BigInt      @id @default(autoincrement())
-  market             usg_markets @relation(fields: [market_id], references: [id])
-  market_id          BigInt
-  borrower_address   String      @db.VarChar
-  collateral_balance Float
-  position_value_usd Float
-  user_debt          Float
-  ltv                Float
-  cr                 Float
-  margin             Float
-  health_ratio       Float
-  liquidation_price  Float
-  distance_pct       Float
-  snapshot_timestamp DateTime    @db.Timestamp
+    id                 BigInt      @id @default(autoincrement())
+    market             usg_markets @relation(fields: [market_id], references: [id])
+    market_id          BigInt
+    borrower_address   String      @db.VarChar
+    collateral_balance Float
+    position_value_usd Float
+    user_debt          Float
+    ltv                Float
+    cr                 Float
+    margin             Float
+    health_ratio       Float
+    liquidation_price  Float
+    distance_pct       Float
+    snapshot_timestamp DateTime    @db.Timestamp
 
-  @@index([market_id, borrower_address])
-  @@index([snapshot_timestamp])
-  @@schema("global")
+    @@index([market_id, borrower_address])
+    @@index([snapshot_timestamp])
+    @@schema("global")
 }
 
 model market_config {
-  id                    BigInt      @id @default(autoincrement())
-  market                usg_markets @relation(fields: [market_id], references: [id])
-  market_id             BigInt
-  max_ltv               Float
-  liquidation_threshold Float
-  max_debt              Float
-  last_update           DateTime    @db.Timestamp
+    id                      BigInt      @id @default(autoincrement())
+    market                  usg_markets @relation(fields: [market_id], references: [id])
+    market_id               BigInt
+    max_ltv                 Float
+    liquidation_threshold   Float
+    max_debt                Float
+    last_update             DateTime    @db.Timestamp
 
-  @@index([market_id])
-  @@schema("global")
+    @@index([market_id])
+    @@schema("global")
+}
+
+model oracle_sanity_snapshots {
+    id             BigInt      @id @default(autoincrement())
+    market         usg_markets @relation(fields: [market_id], references: [id])
+    market_id      BigInt
+    oracle_price   Float
+    offchain_price Float
+    deviation_pct  Float
+    timestamp      DateTime    @db.Timestamp
+
+    @@index([market_id])
+    @@index([timestamp])
+    @@schema("global")
+}
+
+model peg_sanity_snapshots {
+    id        BigInt      @id @default(autoincrement())
+    market    usg_markets @relation(fields: [market_id], references: [id])
+    market_id BigInt
+    price     Float
+    deviation Float
+    timestamp DateTime    @db.Timestamp
+
+    @@index([market_id])
+    @@index([timestamp])
+    @@schema("global")
 }
 
 model active_borrowers {
-  id               BigInt      @id(map: "markets_borrower_pkey") @default(autoincrement())
-  market           usg_markets @relation(fields: [market_id], references: [id])
-  market_id        BigInt
-  debt_shares      String
-  borrower_address String      @db.VarChar
-  block_date       DateTime    @default(now()) @db.Timestamp
+    id               BigInt      @id(map: "markets_borrower_pkey") @default(autoincrement())
+    market           usg_markets @relation(fields: [market_id], references: [id])
+    market_id        BigInt
+    debt_shares      String
+    borrower_address String      @db.VarChar
+    block_date       DateTime    @default(now()) @db.Timestamp
 
-  @@schema("global")
+    @@schema("global")
 }
 
 model liquidation_bot_log {
-  id            BigInt   @id(map: "liquidation_bot_log_pkey") @default(autoincrement())
-  execution_key String   @db.Uuid
-  is_error      Boolean  @default(false)
-  action        String
-  data          Json
-  date          DateTime @default(now()) @db.Timestamp
+    id            BigInt   @id(map: "liquidation_bot_log_pkey") @default(autoincrement())
+    execution_key String   @db.Uuid
+    is_error      Boolean  @default(false)
+    action        String
+    data          Json
+    date          DateTime @default(now()) @db.Timestamp
 
-  @@index([execution_key], map: "liquidation_bot_log_execution_key_idx")
-  @@schema("global")
+    @@index([execution_key], map: "liquidation_bot_log_execution_key_idx")
+    @@schema("global")
+}
+
+model liquidation_execution {
+    id                    BigInt   @id @default(autoincrement())
+    execution_key         String   @db.Uuid
+    market                String   @db.VarChar
+    borrower              String   @db.VarChar
+    type                  String   @db.VarChar // "liquidation" | "seizing"
+    success               Boolean
+    repaid_amount         String?  @db.VarChar
+    fee                   String?  @db.VarChar
+    collateral_liquidated String?  @db.VarChar
+    debt_shares           String?  @db.VarChar
+    liquidator            String?  @db.VarChar
+    profit                String?  @db.VarChar
+    tx_hash               String?  @db.VarChar(66)
+    error_message         String?  @db.VarChar
+    date                  DateTime @default(now()) @db.Timestamp
+
+    @@index([execution_key])
+    @@index([borrower])
+    @@index([market])
+    @@index([date])
+    @@schema("global")
 }
 
 model latest_global_data {
-  id     BigInt      @id(map: "latest_global_data_pkey") @default(autoincrement())
-  market usg_markets @relation(fields: [market_id], references: [id])
+    id     BigInt      @id(map: "latest_global_data_pkey") @default(autoincrement())
+    market usg_markets @relation(fields: [market_id], references: [id])
 
-  market_id     BigInt
-  timestamp     DateTime @db.Timestamp
-  apr_projected Json
-  apr_current   Json
-  tvl_usd       Float
-  tvl_amount    Float
-  total_debt    Float
-  bad_debt      Float
-  oracle_price  Float
-  ir_apy        Float
-  reward_cut    Float
+    market_id     BigInt
+    timestamp     DateTime @db.Timestamp
+    apr_projected Json
+    apr_current   Json
+    tvl_usd       Float
+    tvl_amount    Float
+    total_debt    Float
+    bad_debt      Float
+    oracle_price  Float
+    ir_apy        Float
+    reward_cut    Float
 
-  @@schema("global")
+    @@schema("global")
 }
 
 model global_indicators {
-  id     BigInt                     @id() @default(autoincrement())
-  key    String                     @db.VarChar
-  args   String                     @db.VarChar
-  values global_indicators_values[]
+    id     BigInt                     @id() @default(autoincrement())
+    key    String                     @db.VarChar
+    args   String                     @db.VarChar
+    values global_indicators_values[]
 
-  @@schema("global")
+    @@schema("global")
 }
 
 model global_indicators_values {
-  id                  BigInt            @id() @default(autoincrement())
-  timestamp           DateTime          @db.Timestamp
-  value               Float
-  global_indicator_id BigInt
-  global_indicator    global_indicators @relation(fields: [global_indicator_id], references: [id])
+    id                  BigInt            @id() @default(autoincrement())
+    timestamp           DateTime          @db.Timestamp
+    value               Float
+    global_indicator_id BigInt
+    global_indicator    global_indicators @relation(fields: [global_indicator_id], references: [id])
 
-  @@schema("global")
+    @@schema("global")
 }
 
 model market_global_data {
-  id            BigInt      @id(map: "global_data_and_aprs_markets_history_pkey") @default(autoincrement())
-  market        usg_markets @relation(fields: [market_id], references: [id])
-  market_id     BigInt
-  timestamp     DateTime    @db.Timestamp
-  apr_projected Json
-  apr_current   Json
-  tvl_usd       Float
-  tvl_amount    Float
-  total_debt    Float
-  bad_debt      Float
-  oracle_price  Float
-  ir_apy        Float
-  reward_cut    Float
+    id            BigInt      @id(map: "global_data_and_aprs_markets_history_pkey") @default(autoincrement())
+    market        usg_markets @relation(fields: [market_id], references: [id])
+    market_id     BigInt
+    timestamp     DateTime    @db.Timestamp
+    apr_projected Json
+    apr_current   Json
+    tvl_usd       Float
+    tvl_amount    Float
+    total_debt    Float
+    bad_debt      Float
+    oracle_price  Float
+    ir_apy        Float
+    reward_cut    Float
 
-  @@schema("global")
+    @@schema("global")
 }
 
 model total_supplies {
-  id           BigInt        @id @default(autoincrement())
-  token_id     BigInt
-  token        tracked_erc20 @relation(fields: [token_id], references: [id])
-  timestamp    DateTime
-  total_supply String        @db.VarChar
+    id           BigInt        @id @default(autoincrement())
+    token_id     BigInt
+    token        tracked_erc20 @relation(fields: [token_id], references: [id])
+    timestamp    DateTime
+    total_supply String        @db.VarChar
 
-  // Need a composite index on tokenID and timestamp
-  @@index([token_id, timestamp])
-  @@schema("global")
+    // Need a composite index on tokenID and timestamp
+    @@index([token_id, timestamp])
+    @@schema("global")
 }
 
 model peg_keeper {
-  id                 BigInt               @id @default(autoincrement())
-  address            String               @db.VarChar
-  lp_address         String               @db.VarChar
-  lp_name            String               @db.VarChar
-  stable_address     String               @db.VarChar
-  stable_name        String               @db.VarChar
-  is_active          Boolean
-  creation_date      DateTime             @db.Timestamp
-  pegKeeperHistories peg_keeper_history[]
+    id                 BigInt               @id @default(autoincrement())
+    address            String               @db.VarChar
+    lp_address         String               @db.VarChar
+    lp_name            String               @db.VarChar
+    stable_address     String               @db.VarChar
+    stable_name        String               @db.VarChar
+    is_active          Boolean
+    creation_date      DateTime             @db.Timestamp
+    pegKeeperHistories peg_keeper_history[]
 
-  @@index([id])
-  @@schema("global")
+    @@index([id])
+    @@schema("global")
 }
 
 model peg_keeper_history {
-  id            BigInt     @id @default(autoincrement())
-  date          DateTime   @db.Timestamp
-  balance       Float
-  total_value   Float
-  pegKeeper     peg_keeper @relation(fields: [peg_keeper_id], references: [id])
-  peg_keeper_id BigInt
+    id            BigInt     @id @default(autoincrement())
+    date          DateTime   @db.Timestamp
+    balance       Float
+    total_value   Float
+    pegKeeper     peg_keeper @relation(fields: [peg_keeper_id], references: [id])
+    peg_keeper_id BigInt
 
-  @@index([peg_keeper_id, date])
-  @@schema("global")
+    @@index([peg_keeper_id, date])
+    @@schema("global")
 }
 
 model wrapped_stable {
-  id                     BigInt                   @id @default(autoincrement())
-  address                String                   @db.VarChar
-  stable_address         String                   @db.VarChar
-  stable_name            String                   @db.VarChar
-  is_active              Boolean
-  creation_date          DateTime                 @db.Timestamp
-  wrappedStableHistories wrapped_stable_history[]
+    id                     BigInt                   @id @default(autoincrement())
+    address                String                   @db.VarChar
+    stable_address         String                   @db.VarChar
+    stable_name            String                   @db.VarChar
+    is_active              Boolean
+    creation_date          DateTime                 @db.Timestamp
+    wrappedStableHistories wrapped_stable_history[]
 
-  @@index([id])
-  @@schema("global")
+    @@index([id])
+    @@schema("global")
 }
 
 model wrapped_stable_history {
-  id                BigInt         @id @default(autoincrement())
-  date              DateTime       @db.Timestamp
-  total_supply      Float
-  total_value       Float
-  wrapped_stable    wrapped_stable @relation(fields: [wrapped_stable_id], references: [id])
-  wrapped_stable_id BigInt
+    id                BigInt         @id @default(autoincrement())
+    date              DateTime       @db.Timestamp
+    total_supply      Float
+    total_value       Float
+    wrapped_stable    wrapped_stable @relation(fields: [wrapped_stable_id], references: [id])
+    wrapped_stable_id BigInt
 
-  @@index([wrapped_stable_id, date])
-  @@schema("global")
+    @@index([wrapped_stable_id, date])
+    @@schema("global")
 }
 
 model usg_global_history {
-  id              BigInt   @id @default(autoincrement())
-  date            DateTime @db.Timestamp
-  tvl_markets     Float
-  tvl_susg        Float
-  tvl_wstables    Float
-  tvl_peg_keepers Float
-  total_tvl       Float
-  total_debt      Float
+    id              BigInt   @id @default(autoincrement())
+    date            DateTime @db.Timestamp
+    tvl_markets     Float
+    tvl_susg        Float
+    tvl_wstables    Float
+    tvl_peg_keepers Float
+    total_tvl       Float
+    total_debt      Float
 
-  // To be able to search by date easily
-  @@index([date])
-  @@schema("global")
+    // To be able to search by date easily
+    @@index([date])
+    @@schema("global")
 }
 
 // ========================================
@@ -245,338 +301,338 @@ model usg_global_history {
 // ========================================
 
 model event_blocks {
-  block_id   BigInt    @id(map: "blocks_pkey") @default(autoincrement())
-  created_at DateTime? @db.Timestamp
+    block_id   BigInt    @id(map: "blocks_pkey") @default(autoincrement())
+    created_at DateTime? @db.Timestamp
 
-  @@schema("events")
+    @@schema("events")
 }
 
 model borrow {
-  id              BigInt      @id(map: "borrow_pkey") @default(autoincrement())
-  market          usg_markets @relation(fields: [market_id], references: [id])
-  market_id       BigInt
-  account         String      @db.VarChar
-  receiver        String      @db.VarChar
-  borrowed_amount String      @db.VarChar
-  debt_shares     String      @db.VarChar
-  block_date      DateTime    @db.Timestamp
-  block_id        Int
-  tx_hash         String      @db.VarChar(66)
+    id              BigInt      @id(map: "borrow_pkey") @default(autoincrement())
+    market          usg_markets @relation(fields: [market_id], references: [id])
+    market_id       BigInt
+    account         String      @db.VarChar
+    receiver        String      @db.VarChar
+    borrowed_amount String      @db.VarChar
+    debt_shares     String      @db.VarChar
+    block_date      DateTime    @db.Timestamp
+    block_id        Int
+    tx_hash         String      @db.VarChar(66)
 
-  @@index([account], map: "borrow_account")
-  @@index([market_id], map: "borrow_market_id")
-  @@schema("events")
+    @@index([account], map: "borrow_account")
+    @@index([market_id], map: "borrow_market_id")
+    @@schema("events")
 }
 
 model deposit {
-  id            BigInt      @id(map: "deposit_pkey") @default(autoincrement())
-  market        usg_markets @relation(fields: [market_id], references: [id])
-  market_id     BigInt
-  account       String      @db.VarChar
-  staked_amount String      @db.VarChar
-  block_date    DateTime    @db.Timestamp
-  block_id      Int
-  tx_hash       String      @db.VarChar(66)
+    id            BigInt      @id(map: "deposit_pkey") @default(autoincrement())
+    market        usg_markets @relation(fields: [market_id], references: [id])
+    market_id     BigInt
+    account       String      @db.VarChar
+    staked_amount String      @db.VarChar
+    block_date    DateTime    @db.Timestamp
+    block_id      Int
+    tx_hash       String      @db.VarChar(66)
 
-  @@index([account], map: "deposit_account")
-  @@index([market_id], map: "deposit_market_id")
-  @@schema("events")
+    @@index([account], map: "deposit_account")
+    @@index([market_id], map: "deposit_market_id")
+    @@schema("events")
 }
 
 model zap_deposit {
-  id            BigInt      @id(map: "zap_deposit_pkey") @default(autoincrement())
-  market        usg_markets @relation(fields: [market_id], references: [id])
-  market_id     BigInt
-  account       String      @db.VarChar
-  staked_amount String      @db.VarChar
-  token_in      String      @db.VarChar
-  amount_in     String      @db.VarChar
-  block_date    DateTime    @db.Timestamp
-  block_id      Int
-  tx_hash       String      @db.VarChar(66)
+    id            BigInt      @id(map: "zap_deposit_pkey") @default(autoincrement())
+    market        usg_markets @relation(fields: [market_id], references: [id])
+    market_id     BigInt
+    account       String      @db.VarChar
+    staked_amount String      @db.VarChar
+    token_in      String      @db.VarChar
+    amount_in     String      @db.VarChar
+    block_date    DateTime    @db.Timestamp
+    block_id      Int
+    tx_hash       String      @db.VarChar(66)
 
-  @@index([account], map: "zap_deposit_account")
-  @@index([market_id], map: "zap_deposit_market_id")
-  @@schema("events")
+    @@index([account], map: "zap_deposit_account")
+    @@index([market_id], map: "zap_deposit_market_id")
+    @@schema("events")
 }
 
 model deposit_and_borrow {
-  id            BigInt      @id(map: "deposit_and_borrow_pkey") @default(autoincrement())
-  market        usg_markets @relation(fields: [market_id], references: [id])
-  market_id     BigInt
-  account       String      @db.VarChar
-  staked_amount String      @db.VarChar
-  borrow_amount String      @db.VarChar
-  debt_shares   String      @db.VarChar
-  block_date    DateTime    @db.Timestamp
-  block_id      Int
-  tx_hash       String      @db.VarChar(66)
+    id            BigInt      @id(map: "deposit_and_borrow_pkey") @default(autoincrement())
+    market        usg_markets @relation(fields: [market_id], references: [id])
+    market_id     BigInt
+    account       String      @db.VarChar
+    staked_amount String      @db.VarChar
+    borrow_amount String      @db.VarChar
+    debt_shares   String      @db.VarChar
+    block_date    DateTime    @db.Timestamp
+    block_id      Int
+    tx_hash       String      @db.VarChar(66)
 
-  @@index([account], map: "deposit_and_borrow_account")
-  @@index([market_id], map: "deposit_and_borrow_market_id")
-  @@schema("events")
+    @@index([account], map: "deposit_and_borrow_account")
+    @@index([market_id], map: "deposit_and_borrow_market_id")
+    @@schema("events")
 }
 
 model zap_deposit_and_borrow {
-  id            BigInt      @id(map: "zap_deposit_and_borrow_pkey") @default(autoincrement())
-  market        usg_markets @relation(fields: [market_id], references: [id])
-  market_id     BigInt
-  account       String      @db.VarChar
-  staked_amount String      @db.VarChar
-  borrow_amount String      @db.VarChar
-  debt_shares   String      @db.VarChar
-  token_in      String      @db.VarChar
-  amount_in     String      @db.VarChar
-  block_date    DateTime    @db.Timestamp
-  block_id      Int
-  tx_hash       String      @db.VarChar(66)
+    id            BigInt      @id(map: "zap_deposit_and_borrow_pkey") @default(autoincrement())
+    market        usg_markets @relation(fields: [market_id], references: [id])
+    market_id     BigInt
+    account       String      @db.VarChar
+    staked_amount String      @db.VarChar
+    borrow_amount String      @db.VarChar
+    debt_shares   String      @db.VarChar
+    token_in      String      @db.VarChar
+    amount_in     String      @db.VarChar
+    block_date    DateTime    @db.Timestamp
+    block_id      Int
+    tx_hash       String      @db.VarChar(66)
 
-  @@index([account], map: "zap_deposit_and_borrow_account")
-  @@index([market_id], map: "zap_deposit_and_borrow_market_id")
-  @@schema("events")
+    @@index([account], map: "zap_deposit_and_borrow_account")
+    @@index([market_id], map: "zap_deposit_and_borrow_market_id")
+    @@schema("events")
 }
 
 model withdraw {
-  id               BigInt      @id(map: "withdraw_pkey") @default(autoincrement())
-  market           usg_markets @relation(fields: [market_id], references: [id])
-  market_id        BigInt
-  account          String      @db.VarChar
-  withdrawn_amount String      @db.VarChar
-  block_date       DateTime    @db.Timestamp
-  block_id         Int
-  tx_hash          String      @db.VarChar(66)
+    id               BigInt      @id(map: "withdraw_pkey") @default(autoincrement())
+    market           usg_markets @relation(fields: [market_id], references: [id])
+    market_id        BigInt
+    account          String      @db.VarChar
+    withdrawn_amount String      @db.VarChar
+    block_date       DateTime    @db.Timestamp
+    block_id         Int
+    tx_hash          String      @db.VarChar(66)
 
-  @@index([account], map: "withdraw_account")
-  @@index([market_id], map: "withdraw_market_id")
-  @@schema("events")
+    @@index([account], map: "withdraw_account")
+    @@index([market_id], map: "withdraw_market_id")
+    @@schema("events")
 }
 
 model repay {
-  id            BigInt      @id(map: "repay_pkey") @default(autoincrement())
-  market        usg_markets @relation(fields: [market_id], references: [id])
-  market_id     BigInt
-  account       String      @db.VarChar
-  repayer       String      @db.VarChar
-  repaid_amount String      @db.VarChar
-  debt_shares   String      @db.VarChar
-  block_date    DateTime    @db.Timestamp
-  block_id      Int
-  tx_hash       String      @db.VarChar(66)
+    id            BigInt      @id(map: "repay_pkey") @default(autoincrement())
+    market        usg_markets @relation(fields: [market_id], references: [id])
+    market_id     BigInt
+    account       String      @db.VarChar
+    repayer       String      @db.VarChar
+    repaid_amount String      @db.VarChar
+    debt_shares   String      @db.VarChar
+    block_date    DateTime    @db.Timestamp
+    block_id      Int
+    tx_hash       String      @db.VarChar(66)
 
-  @@index([account], map: "repay_account")
-  @@index([market_id], map: "repay_market_id")
-  @@schema("events")
+    @@index([account], map: "repay_account")
+    @@index([market_id], map: "repay_market_id")
+    @@schema("events")
 }
 
 model repay_and_withdraw {
-  id               BigInt      @id(map: "repay_and_withdraw_pkey") @default(autoincrement())
-  market           usg_markets @relation(fields: [market_id], references: [id])
-  market_id        BigInt
-  account          String      @db.VarChar
-  repaid_amount    String      @db.VarChar
-  withdrawn_amount String      @db.VarChar
-  debt_shares      String      @db.VarChar
-  block_date       DateTime    @db.Timestamp
-  block_id         Int
-  tx_hash          String      @db.VarChar(66)
+    id               BigInt      @id(map: "repay_and_withdraw_pkey") @default(autoincrement())
+    market           usg_markets @relation(fields: [market_id], references: [id])
+    market_id        BigInt
+    account          String      @db.VarChar
+    repaid_amount    String      @db.VarChar
+    withdrawn_amount String      @db.VarChar
+    debt_shares      String      @db.VarChar
+    block_date       DateTime    @db.Timestamp
+    block_id         Int
+    tx_hash          String      @db.VarChar(66)
 
-  @@index([account], map: "repay_and_withdraw_account")
-  @@index([market_id], map: "repay_and_withdraw_market_id")
-  @@schema("events")
+    @@index([account], map: "repay_and_withdraw_account")
+    @@index([market_id], map: "repay_and_withdraw_market_id")
+    @@schema("events")
 }
 
 model zap_repay {
-  id            BigInt      @id(map: "zap_repay_pkey") @default(autoincrement())
-  market        usg_markets @relation(fields: [market_id], references: [id])
-  market_id     BigInt
-  account       String      @db.VarChar
-  repayer       String      @db.VarChar
-  repaid_amount String      @db.VarChar
-  debt_shares   String      @db.VarChar
-  token_in      String      @db.VarChar
-  amount_in     String      @db.VarChar
-  block_date    DateTime    @db.Timestamp
-  block_id      Int
-  tx_hash       String      @db.VarChar(66)
+    id            BigInt      @id(map: "zap_repay_pkey") @default(autoincrement())
+    market        usg_markets @relation(fields: [market_id], references: [id])
+    market_id     BigInt
+    account       String      @db.VarChar
+    repayer       String      @db.VarChar
+    repaid_amount String      @db.VarChar
+    debt_shares   String      @db.VarChar
+    token_in      String      @db.VarChar
+    amount_in     String      @db.VarChar
+    block_date    DateTime    @db.Timestamp
+    block_id      Int
+    tx_hash       String      @db.VarChar(66)
 
-  @@index([account], map: "zap_repay_account")
-  @@index([market_id], map: "zap_repay_market_id")
-  @@schema("events")
+    @@index([account], map: "zap_repay_account")
+    @@index([market_id], map: "zap_repay_market_id")
+    @@schema("events")
 }
 
 model zap_repay_and_withdraw {
-  id               BigInt      @id(map: "zap_repay_and_withdraw_pkey") @default(autoincrement())
-  market           usg_markets @relation(fields: [market_id], references: [id])
-  market_id        BigInt
-  account          String      @db.VarChar
-  withdrawn_amount String      @db.VarChar
-  repaid_amount    String      @db.VarChar
-  debt_shares      String      @db.VarChar
-  token_in         String      @db.VarChar
-  amount_in        String      @db.VarChar
-  block_date       DateTime    @db.Timestamp
-  block_id         Int
-  tx_hash          String      @db.VarChar(66)
+    id               BigInt      @id(map: "zap_repay_and_withdraw_pkey") @default(autoincrement())
+    market           usg_markets @relation(fields: [market_id], references: [id])
+    market_id        BigInt
+    account          String      @db.VarChar
+    withdrawn_amount String      @db.VarChar
+    repaid_amount    String      @db.VarChar
+    debt_shares      String      @db.VarChar
+    token_in         String      @db.VarChar
+    amount_in        String      @db.VarChar
+    block_date       DateTime    @db.Timestamp
+    block_id         Int
+    tx_hash          String      @db.VarChar(66)
 
-  @@index([account], map: "zap_repay_and_withdraw_account")
-  @@index([market_id], map: "zap_repay_and_withdraw_market_id")
-  @@schema("events")
+    @@index([account], map: "zap_repay_and_withdraw_account")
+    @@index([market_id], map: "zap_repay_and_withdraw_market_id")
+    @@schema("events")
 }
 
 model leverage {
-  id              BigInt      @id(map: "leverage_pkey") @default(autoincrement())
-  market          usg_markets @relation(fields: [market_id], references: [id])
-  market_id       BigInt
-  account         String      @db.VarChar
-  staked_amount   String      @db.VarChar
-  collat_bought   String      @db.VarChar
-  borrowed_amount String      @db.VarChar
-  debt_shares     String      @db.VarChar
-  block_date      DateTime    @db.Timestamp
-  block_id        Int
-  tx_hash         String      @db.VarChar(66)
+    id              BigInt      @id(map: "leverage_pkey") @default(autoincrement())
+    market          usg_markets @relation(fields: [market_id], references: [id])
+    market_id       BigInt
+    account         String      @db.VarChar
+    staked_amount   String      @db.VarChar
+    collat_bought   String      @db.VarChar
+    borrowed_amount String      @db.VarChar
+    debt_shares     String      @db.VarChar
+    block_date      DateTime    @db.Timestamp
+    block_id        Int
+    tx_hash         String      @db.VarChar(66)
 
-  @@index([account], map: "leverage_account")
-  @@index([market_id], map: "leverage_market_id")
-  @@schema("events")
+    @@index([account], map: "leverage_account")
+    @@index([market_id], map: "leverage_market_id")
+    @@schema("events")
 }
 
 model zap_leverage {
-  id                 BigInt      @id(map: "zap_leverage_pkey") @default(autoincrement())
-  market             usg_markets @relation(fields: [market_id], references: [id])
-  market_id          BigInt
-  account            String      @db.VarChar
-  staked_amount      String      @db.VarChar
-  collat_zap_deposit String      @db.VarChar
-  collat_leverage    String      @db.VarChar
-  borrowed_amount    String      @db.VarChar
-  debt_shares        String      @db.VarChar
-  token_in           String      @db.VarChar
-  amount_in          String      @db.VarChar
-  block_date         DateTime    @db.Timestamp
-  block_id           Int
-  tx_hash            String      @db.VarChar(66)
+    id                 BigInt      @id(map: "zap_leverage_pkey") @default(autoincrement())
+    market             usg_markets @relation(fields: [market_id], references: [id])
+    market_id          BigInt
+    account            String      @db.VarChar
+    staked_amount      String      @db.VarChar
+    collat_zap_deposit String      @db.VarChar
+    collat_leverage    String      @db.VarChar
+    borrowed_amount    String      @db.VarChar
+    debt_shares        String      @db.VarChar
+    token_in           String      @db.VarChar
+    amount_in          String      @db.VarChar
+    block_date         DateTime    @db.Timestamp
+    block_id           Int
+    tx_hash            String      @db.VarChar(66)
 
-  @@index([account], map: "zap_leverage_account")
-  @@index([market_id], map: "zap_leverage_market_id")
-  @@schema("events")
+    @@index([account], map: "zap_leverage_account")
+    @@index([market_id], map: "zap_leverage_market_id")
+    @@schema("events")
 }
 
 model liquidate {
-  id                    BigInt      @id(map: "liquidate_pkey") @default(autoincrement())
-  market                usg_markets @relation(fields: [market_id], references: [id])
-  market_id             BigInt
-  account               String      @db.VarChar
-  repaid_amount         String      @db.VarChar
-  fee                   String      @db.VarChar
-  collateral_liquidated String      @db.VarChar
-  liquidator            String      @db.VarChar
-  debt_shares           String      @db.VarChar
-  block_date            DateTime    @db.Timestamp
-  block_id              Int
-  tx_hash               String      @db.VarChar(66)
+    id                    BigInt      @id(map: "liquidate_pkey") @default(autoincrement())
+    market                usg_markets @relation(fields: [market_id], references: [id])
+    market_id             BigInt
+    account               String      @db.VarChar
+    repaid_amount         String      @db.VarChar
+    fee                   String      @db.VarChar
+    collateral_liquidated String      @db.VarChar
+    liquidator            String      @db.VarChar
+    debt_shares           String      @db.VarChar
+    block_date            DateTime    @db.Timestamp
+    block_id              Int
+    tx_hash               String      @db.VarChar(66)
 
-  @@index([account], map: "liquidate_account")
-  @@index([market_id], map: "liquidate_market_id")
-  @@schema("events")
+    @@index([account], map: "liquidate_account")
+    @@index([market_id], map: "liquidate_market_id")
+    @@schema("events")
 }
 
 model self_liquidate {
-  id                    BigInt      @id(map: "self_liquidate_pkey") @default(autoincrement())
-  market                usg_markets @relation(fields: [market_id], references: [id])
-  market_id             BigInt
-  account               String      @db.VarChar
-  repaid_amount         String      @db.VarChar
-  collateral_liquidated String      @db.VarChar
-  liquidator            String      @db.VarChar
-  debt_shares           String      @db.VarChar
-  block_date            DateTime    @db.Timestamp
-  block_id              Int
-  tx_hash               String      @db.VarChar(66)
+    id                    BigInt      @id(map: "self_liquidate_pkey") @default(autoincrement())
+    market                usg_markets @relation(fields: [market_id], references: [id])
+    market_id             BigInt
+    account               String      @db.VarChar
+    repaid_amount         String      @db.VarChar
+    collateral_liquidated String      @db.VarChar
+    liquidator            String      @db.VarChar
+    debt_shares           String      @db.VarChar
+    block_date            DateTime    @db.Timestamp
+    block_id              Int
+    tx_hash               String      @db.VarChar(66)
 
-  @@index([account], map: "self_liquidate_account")
-  @@index([market_id], map: "self_liquidate_market_id")
-  @@schema("events")
+    @@index([account], map: "self_liquidate_account")
+    @@index([market_id], map: "self_liquidate_market_id")
+    @@schema("events")
 }
 
 model seize_collateral {
-  id                BigInt      @id(map: "seize_collateral_pkey") @default(autoincrement())
-  market            usg_markets @relation(fields: [market_id], references: [id])
-  market_id         BigInt
-  account           String      @db.VarChar
-  bad_debt          String      @db.VarChar
-  collateral_seized String      @db.VarChar
-  block_date        DateTime    @db.Timestamp
-  block_id          Int
-  tx_hash           String      @db.VarChar(66)
+    id                BigInt      @id(map: "seize_collateral_pkey") @default(autoincrement())
+    market            usg_markets @relation(fields: [market_id], references: [id])
+    market_id         BigInt
+    account           String      @db.VarChar
+    bad_debt          String      @db.VarChar
+    collateral_seized String      @db.VarChar
+    block_date        DateTime    @db.Timestamp
+    block_id          Int
+    tx_hash           String      @db.VarChar(66)
 
-  @@index([account], map: "seize_collateral_account")
-  @@index([market_id], map: "seize_collateral_market_id")
-  @@schema("events")
+    @@index([account], map: "seize_collateral_account")
+    @@index([market_id], map: "seize_collateral_market_id")
+    @@schema("events")
 }
 
 model migrate_from {
-  id               BigInt      @id(map: "migrate_from_pkey") @default(autoincrement())
-  market           usg_markets @relation(fields: [market_id], references: [id])
-  market_id        BigInt
-  account          String      @db.VarChar
-  collat_withdrawn String      @db.VarChar
-  debt_removed     String      @db.VarChar
-  debt_repaid      String      @db.VarChar
-  debt_shares      String      @db.VarChar
-  block_date       DateTime    @db.Timestamp
-  block_id         Int
-  tx_hash          String      @db.VarChar(66)
+    id               BigInt      @id(map: "migrate_from_pkey") @default(autoincrement())
+    market           usg_markets @relation(fields: [market_id], references: [id])
+    market_id        BigInt
+    account          String      @db.VarChar
+    collat_withdrawn String      @db.VarChar
+    debt_removed     String      @db.VarChar
+    debt_repaid      String      @db.VarChar
+    debt_shares      String      @db.VarChar
+    block_date       DateTime    @db.Timestamp
+    block_id         Int
+    tx_hash          String      @db.VarChar(66)
 
-  @@index([account], map: "migrate_from_account")
-  @@index([market_id], map: "migrate_from_market_id")
-  @@schema("events")
+    @@index([account], map: "migrate_from_account")
+    @@index([market_id], map: "migrate_from_market_id")
+    @@schema("events")
 }
 
 model migrate_to {
-  id           BigInt      @id(map: "migrate_to_pkey") @default(autoincrement())
-  market       usg_markets @relation(fields: [market_id], references: [id])
-  market_id    BigInt
-  account      String      @db.VarChar
-  collat_added String      @db.VarChar
-  debt_added   String      @db.VarChar
-  debt_shares  String      @db.VarChar
-  block_date   DateTime    @db.Timestamp
-  block_id     Int
-  tx_hash      String      @db.VarChar(66)
+    id           BigInt      @id(map: "migrate_to_pkey") @default(autoincrement())
+    market       usg_markets @relation(fields: [market_id], references: [id])
+    market_id    BigInt
+    account      String      @db.VarChar
+    collat_added String      @db.VarChar
+    debt_added   String      @db.VarChar
+    debt_shares  String      @db.VarChar
+    block_date   DateTime    @db.Timestamp
+    block_id     Int
+    tx_hash      String      @db.VarChar(66)
 
-  @@index([account], map: "migrate_to_account")
-  @@index([market_id], map: "migrate_to_market_id")
-  @@schema("events")
+    @@index([account], map: "migrate_to_account")
+    @@index([market_id], map: "migrate_to_market_id")
+    @@schema("events")
 }
 
 model process_report {
-  id               BigInt   @id(map: "process_report_pkey") @default(autoincrement())
-  token            String   @db.VarChar
-  gain             String   @db.VarChar
-  currentDebtAfter String   @db.VarChar
-  block_date       DateTime @db.Timestamp
-  block_id         Int
-  tx_hash          String   @db.VarChar(66)
+    id               BigInt   @id(map: "process_report_pkey") @default(autoincrement())
+    token            String   @db.VarChar
+    gain             String   @db.VarChar
+    currentDebtAfter String   @db.VarChar
+    block_date       DateTime @db.Timestamp
+    block_id         Int
+    tx_hash          String   @db.VarChar(66)
 
-  @@index([token], map: "process_report_token_idx")
-  @@index([block_date], map: "process_report_block_date_idx")
-  @@schema("events")
+    @@index([token], map: "process_report_token_idx")
+    @@index([block_date], map: "process_report_block_date_idx")
+    @@schema("events")
 }
 
 model transfer_events {
-  id            BigInt        @id @default(autoincrement())
-  token         tracked_erc20 @relation(fields: [token_address], references: [address])
-  token_address String        @db.VarChar
-  from          String        @db.VarChar
-  to            String        @db.VarChar
-  amount        String        @db.VarChar
-  block_date    DateTime      @db.Timestamp
-  block_id      Int
-  tx_hash       String        @db.VarChar(66)
+    id            BigInt        @id @default(autoincrement())
+    token         tracked_erc20 @relation(fields: [token_address], references: [address])
+    token_address String        @db.VarChar
+    from          String        @db.VarChar
+    to            String        @db.VarChar
+    amount        String        @db.VarChar
+    block_date    DateTime      @db.Timestamp
+    block_id      Int
+    tx_hash       String        @db.VarChar(66)
 
-  @@index([block_id])
-  @@schema("events")
+    @@index([block_id])
+    @@schema("events")
 }
 
 // ========================================
@@ -584,352 +640,352 @@ model transfer_events {
 // ========================================
 
 model user {
-  id                   BigInt            @id(map: "user_pkey") @default(autoincrement())
-  address              String            @unique
-  onboarded            Boolean           @default(false)
-  code                 String?           @unique
-  godsons              referral_usages[] @relation("GodfatherRelation")
-  godfather            referral_usages?  @relation("GodsonRelation")
-  lp_user_points       lp_user_points[]
-  user_boost           user_boost[]
-  lp_referral_points   BigInt            @default(0)
-  vote_referral_points BigInt            @default(0)
+    id                   BigInt            @id(map: "user_pkey") @default(autoincrement())
+    address              String            @unique
+    onboarded            Boolean           @default(false)
+    code                 String?           @unique
+    godsons              referral_usages[] @relation("GodfatherRelation")
+    godfather            referral_usages?  @relation("GodsonRelation")
+    lp_user_points       lp_user_points[]
+    user_boost           user_boost[]
+    lp_referral_points   BigInt            @default(0)
+    vote_referral_points BigInt            @default(0)
 
-  @@schema("points")
+    @@schema("points")
 }
 
 model referral_usages {
-  id           BigInt   @id(map: "referral_usages_pkey") @default(autoincrement())
-  godfather_id BigInt
-  godson_id    BigInt
-  used_at      DateTime @default(now()) @db.Timestamp
-  godfather    user     @relation(fields: [godfather_id], references: [id], name: "GodfatherRelation")
-  godson       user     @relation(fields: [godson_id], references: [id], name: "GodsonRelation")
+    id           BigInt   @id(map: "referral_usages_pkey") @default(autoincrement())
+    godfather_id BigInt
+    godson_id    BigInt
+    used_at      DateTime @default(now()) @db.Timestamp
+    godfather    user     @relation(fields: [godfather_id], references: [id], name: "GodfatherRelation")
+    godson       user     @relation(fields: [godson_id], references: [id], name: "GodsonRelation")
 
-  @@unique(godson_id)
-  @@schema("points")
+    @@unique(godson_id)
+    @@schema("points")
 }
 
 model lp_points_block {
-  block_id BigInt @id(map: "lp_points_block_pkey") @default(autoincrement())
+    block_id BigInt @id(map: "lp_points_block_pkey") @default(autoincrement())
 
-  @@schema("points")
+    @@schema("points")
 }
 
 model lp_task {
-  id              BigInt           @id(map: "task_pkey") @default(autoincrement())
-  name            String
-  action_type     String           @db.VarChar
-  protocol        String
-  token           tracked_erc20    @relation(fields: [token_address], references: [address])
-  token_address   String
-  point_rate      Decimal          @db.Decimal(8, 6)
-  description     String
-  url             String
-  price_source_id BigInt
-  start_date      DateTime         @db.Timestamp
-  end_date        DateTime?        @db.Timestamp
-  price_source    price_source     @relation(fields: [price_source_id], references: [id])
-  lp_user_tasks   lp_user_tasks[]
-  lp_user_points  lp_user_points[]
+    id              BigInt           @id(map: "task_pkey") @default(autoincrement())
+    name            String
+    action_type     String           @db.VarChar
+    protocol        String
+    token           tracked_erc20    @relation(fields: [token_address], references: [address])
+    token_address   String
+    point_rate      Decimal          @db.Decimal(8, 6)
+    description     String
+    url             String
+    price_source_id BigInt
+    start_date      DateTime         @db.Timestamp
+    end_date        DateTime?        @db.Timestamp
+    price_source    price_source     @relation(fields: [price_source_id], references: [id])
+    lp_user_tasks   lp_user_tasks[]
+    lp_user_points  lp_user_points[]
 
-  @@schema("points")
+    @@schema("points")
 }
 
 model lp_user_tasks {
-  id           BigInt    @id(map: "lp_user_tasks_pkey") @default(autoincrement())
-  lp_task      lp_task   @relation(fields: [task_id], references: [id])
-  task_id      BigInt
-  user_address String    @db.VarChar
-  start_date   DateTime  @db.Timestamp
-  closed_date  DateTime? @db.Timestamp
-  amount       String
+    id           BigInt    @id(map: "lp_user_tasks_pkey") @default(autoincrement())
+    lp_task      lp_task   @relation(fields: [task_id], references: [id])
+    task_id      BigInt
+    user_address String    @db.VarChar
+    start_date   DateTime  @db.Timestamp
+    closed_date  DateTime? @db.Timestamp
+    amount       String
 
-  @@index([task_id, user_address])
-  @@index([start_date, closed_date])
-  @@index([task_id, start_date, closed_date])
-  @@schema("points")
+    @@index([task_id, user_address])
+    @@index([start_date, closed_date])
+    @@index([task_id, start_date, closed_date])
+    @@schema("points")
 }
 
 model tracked_erc20 {
-  id              BigInt            @id(map: "tracked_erc20_pkey") @default(autoincrement())
-  address         String            @unique
-  name            String?
-  symbol          String?
-  lp_task         lp_task[]
-  transfer_events transfer_events[]
-  total_supplies  total_supplies[]
+    id              BigInt            @id(map: "tracked_erc20_pkey") @default(autoincrement())
+    address         String            @unique
+    name            String?
+    symbol          String?
+    lp_task         lp_task[]
+    transfer_events transfer_events[]
+    total_supplies  total_supplies[]
 
-  @@schema("points")
+    @@schema("points")
 }
 
 model lp_user_points {
-  id             BigInt  @id @default(autoincrement())
-  user_address   String  @db.VarChar
-  user           user    @relation(fields: [user_address], references: [address])
-  task_id        BigInt
-  lp_task        lp_task @relation(fields: [task_id], references: [id])
-  points         BigInt
-  booster_points BigInt
+    id             BigInt  @id @default(autoincrement())
+    user_address   String  @db.VarChar
+    user           user    @relation(fields: [user_address], references: [address])
+    task_id        BigInt
+    lp_task        lp_task @relation(fields: [task_id], references: [id])
+    points         BigInt
+    booster_points BigInt
 
-  @@unique([user_address, task_id])
-  @@schema("points")
+    @@unique([user_address, task_id])
+    @@schema("points")
 }
 
 model lp_points_users_excluded {
-  id   BigInt @id @default(autoincrement())
-  user String @db.VarChar
+    id   BigInt @id @default(autoincrement())
+    user String @db.VarChar
 
-  @@schema("points")
+    @@schema("points")
 }
 
 model price_source {
-  id               BigInt            @id @default(autoincrement())
-  name             String            @db.VarChar
-  address          String            @db.VarChar
-  reference        String?           @db.VarChar
-  type             PriceSourceType
-  lp_tasks         lp_task[]
-  price_feeds      price_feeds[]
-  last_price_feeds last_price_feeds?
+    id               BigInt            @id @default(autoincrement())
+    name             String            @db.VarChar
+    address          String            @db.VarChar
+    reference        String?           @db.VarChar
+    type             PriceSourceType
+    lp_tasks         lp_task[]
+    price_feeds      price_feeds[]
+    last_price_feeds last_price_feeds?
 
-  @@schema("points")
+    @@schema("points")
 }
 
 model price_feeds {
-  id              BigInt       @id @default(autoincrement())
-  timestamp       DateTime     @db.Timestamp
-  price_usd       Decimal      @db.Decimal(12, 4)
-  price_source    price_source @relation(fields: [price_source_id], references: [id])
-  price_source_id BigInt
+    id              BigInt       @id @default(autoincrement())
+    timestamp       DateTime     @db.Timestamp
+    price_usd       Decimal      @db.Decimal(12, 4)
+    price_source    price_source @relation(fields: [price_source_id], references: [id])
+    price_source_id BigInt
 
-  // index added in  src\sql-functions\index_include_price.sql because include is not supported by prisma.
+    // index added in  src\sql-functions\index_include_price.sql because include is not supported by prisma.
 
-  @@schema("points")
+    @@schema("points")
 }
 
 model last_price_feeds {
-  id              BigInt       @id @default(autoincrement())
-  price_usd       Decimal      @db.Decimal(12, 4)
-  price_source    price_source @relation(fields: [price_source_id], references: [id])
-  price_source_id BigInt       @unique
+    id              BigInt       @id @default(autoincrement())
+    price_usd       Decimal      @db.Decimal(12, 4)
+    price_source    price_source @relation(fields: [price_source_id], references: [id])
+    price_source_id BigInt       @unique
 
-  @@schema("points")
+    @@schema("points")
 }
 
 // llamaApi / curveApi / pendleApi /ERC4626 
 
 enum PriceSourceType {
-  llamaApi
-  curveApi
-  pendleApi
-  ERC4626
-  chainview
-  market
+    llamaApi
+    curveApi
+    pendleApi
+    ERC4626
+    chainview
+    market
 
-  @@schema("points")
+    @@schema("points")
 }
 
 model user_boost {
-  id           BigInt    @id @default(autoincrement())
-  user_address String    @db.VarChar
-  user         user      @relation(fields: [user_address], references: [address])
-  multiplier   Decimal   @db.Decimal(4, 2)
-  start_at     DateTime  @db.Timestamp
-  end_at       DateTime? @db.Timestamp
-  created_at   DateTime  @default(now()) @db.Timestamp
+    id           BigInt    @id @default(autoincrement())
+    user_address String    @db.VarChar
+    user         user      @relation(fields: [user_address], references: [address])
+    multiplier   Decimal   @db.Decimal(4, 2)
+    start_at     DateTime  @db.Timestamp
+    end_at       DateTime? @db.Timestamp
+    created_at   DateTime  @default(now()) @db.Timestamp
 
-  @@index([user_address, start_at, end_at], map: "user_boost_user_start_end_idx")
-  @@index([user_address, start_at])
-  @@schema("points")
+    @@index([user_address, start_at, end_at], map: "user_boost_user_start_end_idx")
+    @@index([user_address, start_at])
+    @@schema("points")
 }
 
 model onchain_boost_user {
-  id           BigInt @id @default(autoincrement())
-  user_address String @db.VarChar
-  type         String @db.VarChar
+    id           BigInt @id @default(autoincrement())
+    user_address String @db.VarChar
+    type         String @db.VarChar
 
-  @@schema("points")
+    @@schema("points")
 }
 
 model offchain_boost_user {
-  id           BigInt @id @default(autoincrement())
-  user_address String @db.VarChar
-  type         String @db.VarChar
+    id           BigInt @id @default(autoincrement())
+    user_address String @db.VarChar
+    type         String @db.VarChar
 
-  @@schema("points")
+    @@schema("points")
 }
 
 model boost_subscribers {
-  id           BigInt @id @default(autoincrement())
-  user_address String @db.VarChar
+    id           BigInt @id @default(autoincrement())
+    user_address String @db.VarChar
 
-  @@unique([user_address])
-  @@schema("points")
+    @@unique([user_address])
+    @@schema("points")
 }
 
 model vote_task {
-  id                     BigInt                    @id @default(autoincrement())
-  organisation           String                    @db.VarChar
-  protocol               String                    @db.VarChar
-  point_rate             Float
-  description            String                    @db.VarChar
-  url                    String                    @db.VarChar
-  is_onchain             Boolean
-  voteUserTasks          vote_user_tasks[]
-  gaugePools             gauge_pools?
-  snapshotScoringChoices snapshot_scoring_choices?
+    id                     BigInt                    @id @default(autoincrement())
+    organisation           String                    @db.VarChar
+    protocol               String                    @db.VarChar
+    point_rate             Float
+    description            String                    @db.VarChar
+    url                    String                    @db.VarChar
+    is_onchain             Boolean
+    voteUserTasks          vote_user_tasks[]
+    gaugePools             gauge_pools?
+    snapshotScoringChoices snapshot_scoring_choices?
 
-  @@index([is_onchain, id]) // Used in api, getTaskUserVote, in lastOffChainEpoch & lastOnChainEpoch CTE
-  @@schema("points")
+    @@index([is_onchain, id]) // Used in api, getTaskUserVote, in lastOffChainEpoch & lastOnChainEpoch CTE
+    @@schema("points")
 }
 
 model vote_user_tasks {
-  id                                BigInt                         @id @default(autoincrement())
-  vote_task                         vote_task                      @relation(fields: [vote_task_id], references: [id])
-  vote_task_id                      BigInt
-  user_address                      String                         @db.VarChar
-  processedProposals                votes_epoch_processed_proposal @relation(fields: [votes_epoch_processed_proposal_id], references: [id])
-  votes_epoch_processed_proposal_id BigInt
-  voting_power                      Float
-  points                            BigInt
-  date                              DateTime                       @db.Timestamp
+    id                                BigInt                         @id @default(autoincrement())
+    vote_task                         vote_task                      @relation(fields: [vote_task_id], references: [id])
+    vote_task_id                      BigInt
+    user_address                      String                         @db.VarChar
+    processedProposals                votes_epoch_processed_proposal @relation(fields: [votes_epoch_processed_proposal_id], references: [id])
+    votes_epoch_processed_proposal_id BigInt
+    voting_power                      Float
+    points                            BigInt
+    date                              DateTime                       @db.Timestamp
 
-  @@unique([vote_task_id, user_address, votes_epoch_processed_proposal_id])
-  @@index([user_address, vote_task_id, votes_epoch_processed_proposal_id, date(sort: Desc)])
-  @@index([user_address, vote_task_id])
-  @@schema("points")
+    @@unique([vote_task_id, user_address, votes_epoch_processed_proposal_id])
+    @@index([user_address, vote_task_id, votes_epoch_processed_proposal_id, date(sort: Desc)])
+    @@index([user_address, vote_task_id])
+    @@schema("points")
 }
 
 model votes_epoch_processed_proposal {
-  id                       BigInt                  @id @default(autoincrement())
-  epoch_id                 String                  @db.VarChar
-  epoch_name               String?                 @db.VarChar
-  voteUserTasks            vote_user_tasks[]
-  processed_at             DateTime                @db.Timestamp
-  snapshotOrganisation     snapshot_organisations? @relation(fields: [snapshot_organisation_id], references: [id])
-  snapshot_organisation_id BigInt?
-  gaugeController          gauge_controllers?      @relation(fields: [gauge_controller_id], references: [id])
-  gauge_controller_id      BigInt?
+    id                       BigInt                  @id @default(autoincrement())
+    epoch_id                 String                  @db.VarChar
+    epoch_name               String?                 @db.VarChar
+    voteUserTasks            vote_user_tasks[]
+    processed_at             DateTime                @db.Timestamp
+    snapshotOrganisation     snapshot_organisations? @relation(fields: [snapshot_organisation_id], references: [id])
+    snapshot_organisation_id BigInt?
+    gaugeController          gauge_controllers?      @relation(fields: [gauge_controller_id], references: [id])
+    gauge_controller_id      BigInt?
 
-  @@index([gauge_controller_id])
-  @@index([snapshot_organisation_id])
-  @@index([processed_at])
-  @@index([id])
-  @@schema("points")
+    @@index([gauge_controller_id])
+    @@index([snapshot_organisation_id])
+    @@index([processed_at])
+    @@index([id])
+    @@schema("points")
 }
 
 model votes_points_blocks {
-  block_id   BigInt   @id @default(autoincrement())
-  block_date DateTime @db.Timestamp
-  epoch_date DateTime @db.Timestamp
+    block_id   BigInt   @id @default(autoincrement())
+    block_date DateTime @db.Timestamp
+    epoch_date DateTime @db.Timestamp
 
-  @@schema("points")
+    @@schema("points")
 }
 
 // OFFCHAIN
 
 model snapshot_organisations {
-  id                    BigInt                           @id @default(autoincrement())
-  key                   String                           @db.VarChar
-  url                   String                           @db.VarChar
-  proposal_title_search String                           @db.VarChar
-  proposals             votes_epoch_processed_proposal[]
-  scoringChoices        snapshot_scoring_choices[]
-  votersToExclude       snapshot_voter_to_exclude[]
+    id                    BigInt                           @id @default(autoincrement())
+    key                   String                           @db.VarChar
+    url                   String                           @db.VarChar
+    proposal_title_search String                           @db.VarChar
+    proposals             votes_epoch_processed_proposal[]
+    scoringChoices        snapshot_scoring_choices[]
+    votersToExclude       snapshot_voter_to_exclude[]
 
-  @@index([id])
-  @@schema("points")
+    @@index([id])
+    @@schema("points")
 }
 
 model snapshot_scoring_choices {
-  id                       BigInt                 @id @default(autoincrement())
-  choice_name              String                 @db.VarChar
-  snapshotOrganisations    snapshot_organisations @relation(fields: [snapshot_organisation_id], references: [id])
-  snapshot_organisation_id BigInt
-  VoteTask                 vote_task              @relation(fields: [vote_task_id], references: [id])
-  vote_task_id             BigInt                 @unique
+    id                       BigInt                 @id @default(autoincrement())
+    choice_name              String                 @db.VarChar
+    snapshotOrganisations    snapshot_organisations @relation(fields: [snapshot_organisation_id], references: [id])
+    snapshot_organisation_id BigInt
+    VoteTask                 vote_task              @relation(fields: [vote_task_id], references: [id])
+    vote_task_id             BigInt                 @unique
 
-  @@index([vote_task_id, snapshot_organisation_id])
-  @@schema("points")
+    @@index([vote_task_id, snapshot_organisation_id])
+    @@schema("points")
 }
 
 model snapshot_voter_to_exclude {
-  id                       BigInt                 @id @default(autoincrement())
-  user_address             String                 @db.VarChar
-  name                     String                 @db.VarChar
-  snapshotOrganisation     snapshot_organisations @relation(fields: [snapshot_organisation_id], references: [id])
-  snapshot_organisation_id BigInt
+    id                       BigInt                 @id @default(autoincrement())
+    user_address             String                 @db.VarChar
+    name                     String                 @db.VarChar
+    snapshotOrganisation     snapshot_organisations @relation(fields: [snapshot_organisation_id], references: [id])
+    snapshot_organisation_id BigInt
 
-  @@index([snapshot_organisation_id])
-  @@schema("points")
+    @@index([snapshot_organisation_id])
+    @@schema("points")
 }
 
 // ONCHAIN
 
 model gauge_controllers {
-  id                           BigInt                           @id @default(autoincrement())
-  controller_address           String                           @db.VarChar
-  gauge_pools                  gauge_pools[]
-  voter_to_exclude             gauges_voter_to_exclude[]
-  votesEpochProcessedProposals votes_epoch_processed_proposal[]
+    id                           BigInt                           @id @default(autoincrement())
+    controller_address           String                           @db.VarChar
+    gauge_pools                  gauge_pools[]
+    voter_to_exclude             gauges_voter_to_exclude[]
+    votesEpochProcessedProposals votes_epoch_processed_proposal[]
 
-  @@schema("points")
+    @@schema("points")
 }
 
 model gauge_pools {
-  id                   BigInt            @id @default(autoincrement())
-  gauge_address        String            @db.VarChar
-  gauge_controllers_id BigInt
-  gauge_controller     gauge_controllers @relation(fields: [gauge_controllers_id], references: [id])
-  gauge_votes          gauges_votes[]
-  vote_task_id         BigInt            @unique
-  vote_task            vote_task         @relation(fields: [vote_task_id], references: [id])
+    id                   BigInt            @id @default(autoincrement())
+    gauge_address        String            @db.VarChar
+    gauge_controllers_id BigInt
+    gauge_controller     gauge_controllers @relation(fields: [gauge_controllers_id], references: [id])
+    gauge_votes          gauges_votes[]
+    vote_task_id         BigInt            @unique
+    vote_task            vote_task         @relation(fields: [vote_task_id], references: [id])
 
-  @@index([vote_task_id])
-  @@index([gauge_controllers_id])
-  @@schema("points")
+    @@index([vote_task_id])
+    @@index([gauge_controllers_id])
+    @@schema("points")
 }
 
 model gauges_votes {
-  id            BigInt      @id @default(autoincrement())
-  user_address  String      @db.VarChar
-  gauge_pool_id BigInt
-  gauge_pool    gauge_pools @relation(fields: [gauge_pool_id], references: [id])
+    id            BigInt      @id @default(autoincrement())
+    user_address  String      @db.VarChar
+    gauge_pool_id BigInt
+    gauge_pool    gauge_pools @relation(fields: [gauge_pool_id], references: [id])
 
-  @@index([gauge_pool_id])
-  @@schema("points")
+    @@index([gauge_pool_id])
+    @@schema("points")
 }
 
 model gauges_voter_to_exclude {
-  id                   BigInt            @id @default(autoincrement())
-  user_address         String            @db.VarChar
-  name                 String            @db.VarChar
-  gauge_controllers_id BigInt
-  gauge_controller     gauge_controllers @relation(fields: [gauge_controllers_id], references: [id])
+    id                   BigInt            @id @default(autoincrement())
+    user_address         String            @db.VarChar
+    name                 String            @db.VarChar
+    gauge_controllers_id BigInt
+    gauge_controller     gauge_controllers @relation(fields: [gauge_controllers_id], references: [id])
 
-  @@index([gauge_controllers_id])
-  @@schema("points")
+    @@index([gauge_controllers_id])
+    @@schema("points")
 }
 
 enum PointsBotAction {
-  POINTS_GENERAL
-  POINTS_INDEXER
-  POINTS_FETCH_PRICES
-  POINTS_PROCESS_USER_TASK
-  POINTS_CALCULATE_POINTS
-  POINTS_PROCESS_VOTE_ONCHAIN
-  POINTS_PROCESS_VOTE
+    POINTS_GENERAL
+    POINTS_INDEXER
+    POINTS_FETCH_PRICES
+    POINTS_PROCESS_USER_TASK
+    POINTS_CALCULATE_POINTS
+    POINTS_PROCESS_VOTE_ONCHAIN
+    POINTS_PROCESS_VOTE
 
-  @@schema("points")
+    @@schema("points")
 }
 
 enum ErrorLevel {
-  INFO
-  WARNING
-  ERROR
+    INFO
+    WARNING
+    ERROR
 
-  @@schema("points")
+    @@schema("points")
 }
 
 // will be used to track the no problem execution of differents processes
@@ -937,17 +993,17 @@ enum ErrorLevel {
 // execution_key can be used to match an error with is parent process
 // data will be used to track the data of the process/error
 model points_bot_log {
-  id            BigInt          @id @default(autoincrement())
-  execution_key String          @db.Uuid
-  errorLevel    ErrorLevel
-  action        PointsBotAction
-  message       String?         @db.VarChar
-  data          Json
-  date          DateTime        @default(now()) @db.Timestamp
+    id            BigInt          @id @default(autoincrement())
+    execution_key String          @db.Uuid
+    errorLevel    ErrorLevel
+    action        PointsBotAction
+    message       String?         @db.VarChar
+    data          Json
+    date          DateTime        @default(now()) @db.Timestamp
 
-  @@index([execution_key])
-  @@index([date])
-  @@schema("points")
+    @@index([execution_key])
+    @@index([date])
+    @@schema("points")
 }
 
 // will be used to track the no problem execution of differents processes
@@ -955,15 +1011,15 @@ model points_bot_log {
 // execution_key can be used to match an error with is parent process
 // data will be used to track the data of the process/error
 model onchain_tx_bot_log {
-  id         BigInt          @id @default(autoincrement())
-  errorLevel ErrorLevel
-  action     PointsBotAction
-  message    String?         @db.VarChar
-  data       Json
-  date       DateTime        @default(now()) @db.Timestamp
+    id         BigInt          @id @default(autoincrement())
+    errorLevel ErrorLevel
+    action     PointsBotAction
+    message    String?         @db.VarChar
+    data       Json
+    date       DateTime        @default(now()) @db.Timestamp
 
-  @@index([date])
-  @@schema("points")
+    @@index([date])
+    @@schema("points")
 }
 
 // ========================================
@@ -971,107 +1027,107 @@ model onchain_tx_bot_log {
 // ========================================
 
 model predeposit_block {
-  block_id BigInt @id @default(autoincrement())
+    block_id BigInt @id @default(autoincrement())
 
-  @@index([block_id])
-  @@schema("predeposit")
+    @@index([block_id])
+    @@schema("predeposit")
 }
 
 model add_liquidity_events {
-  id            BigInt      @id @default(autoincrement())
-  usg_lp        usg_lp_keys @relation(fields: [usg_lp_id], references: [id])
-  usg_lp_id     BigInt
-  provider      String      @db.VarChar
-  lp_amount     String      @db.VarChar
-  token0_amount String      @db.VarChar
-  token1_amount String      @db.VarChar
-  block_date    DateTime    @db.Timestamp
-  block_id      Int
-  tx_hash       String      @db.VarChar(66)
+    id            BigInt      @id @default(autoincrement())
+    usg_lp        usg_lp_keys @relation(fields: [usg_lp_id], references: [id])
+    usg_lp_id     BigInt
+    provider      String      @db.VarChar
+    lp_amount     String      @db.VarChar
+    token0_amount String      @db.VarChar
+    token1_amount String      @db.VarChar
+    block_date    DateTime    @db.Timestamp
+    block_id      Int
+    tx_hash       String      @db.VarChar(66)
 
-  @@index([provider, block_id])
-  @@schema("predeposit")
+    @@index([provider, block_id])
+    @@schema("predeposit")
 }
 
 model usg_lp_keys {
-  id                         BigInt                       @id @default(autoincrement())
-  lp_address                 String                       @db.VarChar
-  lp_name                    String                       @db.VarChar
-  add_liquidity              add_liquidity_events[]
-  accountedBalances          accounted_balances[]
-  totalDepositeds            accounted_total[]
-  accountedTotalHistories    accounted_total_history[]
-  accountedBalancesHistories accounted_balances_history[]
+    id                         BigInt                       @id @default(autoincrement())
+    lp_address                 String                       @db.VarChar
+    lp_name                    String                       @db.VarChar
+    add_liquidity              add_liquidity_events[]
+    accountedBalances          accounted_balances[]
+    totalDepositeds            accounted_total[]
+    accountedTotalHistories    accounted_total_history[]
+    accountedBalancesHistories accounted_balances_history[]
 
-  @@schema("predeposit")
+    @@schema("predeposit")
 }
 
 enum PredepositState {
-  deposit_private
-  deposit_public
-  retention
-  finished
+    deposit_private
+    deposit_public
+    retention
+    finished
 
-  @@schema("predeposit")
+    @@schema("predeposit")
 }
 
 model predeposit_state {
-  state PredepositState @unique
+    state PredepositState @unique
 
-  @@schema("predeposit")
+    @@schema("predeposit")
 }
 
 model predeposit_users {
-  id             BigInt    @id @default(autoincrement())
-  user_address   String    @unique @db.VarChar
-  signature      String?   @db.VarChar
-  is_private     Boolean
-  signature_date DateTime? @db.Timestamp
+    id             BigInt    @id @default(autoincrement())
+    user_address   String    @unique @db.VarChar
+    signature      String?   @db.VarChar
+    is_private     Boolean
+    signature_date DateTime? @db.Timestamp
 
-  @@index([is_private, signature])
-  @@schema("predeposit")
+    @@index([is_private, signature])
+    @@schema("predeposit")
 }
 
 model accounted_balances {
-  id           BigInt      @id @default(autoincrement())
-  usg_lp       usg_lp_keys @relation(fields: [usg_lp_id], references: [id])
-  usg_lp_id    BigInt
-  user_address String      @db.VarChar
-  balance_lp   String      @db.VarChar
+    id           BigInt      @id @default(autoincrement())
+    usg_lp       usg_lp_keys @relation(fields: [usg_lp_id], references: [id])
+    usg_lp_id    BigInt
+    user_address String      @db.VarChar
+    balance_lp   String      @db.VarChar
 
-  @@unique([usg_lp_id, user_address])
-  @@index([usg_lp_id, user_address])
-  @@schema("predeposit")
+    @@unique([usg_lp_id, user_address])
+    @@index([usg_lp_id, user_address])
+    @@schema("predeposit")
 }
 
 model accounted_balances_history {
-  id           BigInt      @id @default(autoincrement())
-  usg_lp       usg_lp_keys @relation(fields: [usg_lp_id], references: [id])
-  usg_lp_id    BigInt
-  user_address String      @db.VarChar
-  balance_lp   String      @db.VarChar
-  date         DateTime    @db.Timestamp
+    id           BigInt      @id @default(autoincrement())
+    usg_lp       usg_lp_keys @relation(fields: [usg_lp_id], references: [id])
+    usg_lp_id    BigInt
+    user_address String      @db.VarChar
+    balance_lp   String      @db.VarChar
+    date         DateTime    @db.Timestamp
 
-  @@schema("predeposit")
+    @@schema("predeposit")
 }
 
 model accounted_total {
-  id        BigInt      @id @default(autoincrement())
-  usg_lp    usg_lp_keys @relation(fields: [usg_lp_id], references: [id])
-  usg_lp_id BigInt
-  total_lp  String      @db.VarChar
-  cap_lp    String      @db.VarChar
+    id        BigInt      @id @default(autoincrement())
+    usg_lp    usg_lp_keys @relation(fields: [usg_lp_id], references: [id])
+    usg_lp_id BigInt
+    total_lp  String      @db.VarChar
+    cap_lp    String      @db.VarChar
 
-  @@schema("predeposit")
+    @@schema("predeposit")
 }
 
 model accounted_total_history {
-  id        BigInt      @id @default(autoincrement())
-  usg_lp    usg_lp_keys @relation(fields: [usg_lp_id], references: [id])
-  usg_lp_id BigInt
-  total_lp  String      @db.VarChar
-  cap_lp    String      @db.VarChar
-  date      DateTime    @db.Timestamp
+    id        BigInt      @id @default(autoincrement())
+    usg_lp    usg_lp_keys @relation(fields: [usg_lp_id], references: [id])
+    usg_lp_id BigInt
+    total_lp  String      @db.VarChar
+    cap_lp    String      @db.VarChar
+    date      DateTime    @db.Timestamp
 
-  @@schema("predeposit")
+    @@schema("predeposit")
 }
