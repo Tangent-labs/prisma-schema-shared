@@ -13,41 +13,37 @@ datasource db {
 // ========================================
 
 model usg_markets {
-    id                         BigInt                   @id(map: "markets_contracts_pkey") @default(autoincrement())
-    contract_name              String                   @db.VarChar
-    collateral_address         String                   @db.VarChar
-    contract_address           String                   @db.VarChar
-    contract_type              String                   @db.VarChar
-    is_active                  Boolean
-    create_block               BigInt
-    create_date                DateTime                 @db.Timestamp
-    peg_target_value           Float?
-    alert_threshold_warning_pct Float?
-    alert_threshold_critical_pct Float?
-    market_global_data         market_global_data[]
-    active_borrowers           active_borrowers[]
-    borrow                     borrow[]
-    deposit                    deposit[]
-    zap_deposit                zap_deposit[]
-    deposit_and_borrow         deposit_and_borrow[]
-    zap_deposit_and_borrow     zap_deposit_and_borrow[]
-    withdraw                   withdraw[]
-    repay                      repay[]
-    repay_and_withdraw         repay_and_withdraw[]
-    zap_repay                  zap_repay[]
-    zap_repay_and_withdraw     zap_repay_and_withdraw[]
-    leverage                   leverage[]
-    zap_leverage               zap_leverage[]
-    liquidate                  liquidate[]
-    self_liquidate             self_liquidate[]
-    seize_collateral           seize_collateral[]
-    migrate_from               migrate_from[]
-    migrate_to                 migrate_to[]
-    latest_global_data         latest_global_data[]
-    position_snapshots         position_snapshots[]
-    market_config              market_config[]
-    oracle_sanity_snapshots    oracle_sanity_snapshots[]
-    peg_sanity_snapshots       peg_sanity_snapshots[]
+    id                      BigInt                    @id(map: "markets_contracts_pkey") @default(autoincrement())
+    contract_name           String                    @db.VarChar
+    collateral_address      String                    @db.VarChar
+    contract_address        String                    @db.VarChar
+    contract_type           String                    @db.VarChar
+    is_active               Boolean
+    create_block            BigInt
+    create_date             DateTime                  @db.Timestamp
+    market_global_data      market_global_data[]
+    active_borrowers        active_borrowers[]
+    borrow                  borrow[]
+    deposit                 deposit[]
+    zap_deposit             zap_deposit[]
+    deposit_and_borrow      deposit_and_borrow[]
+    zap_deposit_and_borrow  zap_deposit_and_borrow[]
+    withdraw                withdraw[]
+    repay                   repay[]
+    repay_and_withdraw      repay_and_withdraw[]
+    zap_repay               zap_repay[]
+    zap_repay_and_withdraw  zap_repay_and_withdraw[]
+    leverage                leverage[]
+    zap_leverage            zap_leverage[]
+    liquidate               liquidate[]
+    self_liquidate          self_liquidate[]
+    seize_collateral        seize_collateral[]
+    migrate_from            migrate_from[]
+    migrate_to              migrate_to[]
+    latest_global_data      latest_global_data[]
+    position_snapshots      position_snapshots[]
+    market_config           market_config[]
+    oracle_sanity_snapshots oracle_sanity_snapshots[]
 
     @@index([contract_address])
     @@schema("global")
@@ -75,13 +71,13 @@ model position_snapshots {
 }
 
 model market_config {
-    id                      BigInt      @id @default(autoincrement())
-    market                  usg_markets @relation(fields: [market_id], references: [id])
-    market_id               BigInt
-    max_ltv                 Float
-    liquidation_threshold   Float
-    max_debt                Float
-    last_update             DateTime    @db.Timestamp
+    id                    BigInt      @id @default(autoincrement())
+    market                usg_markets @relation(fields: [market_id], references: [id])
+    market_id             BigInt
+    max_ltv               Float
+    liquidation_threshold Float
+    max_debt              Float
+    last_update           DateTime    @db.Timestamp
 
     @@index([market_id])
     @@schema("global")
@@ -101,15 +97,30 @@ model oracle_sanity_snapshots {
     @@schema("global")
 }
 
-model peg_sanity_snapshots {
-    id        BigInt      @id @default(autoincrement())
-    market    usg_markets @relation(fields: [market_id], references: [id])
-    market_id BigInt
-    price     Float
-    deviation Float
-    timestamp DateTime    @db.Timestamp
+model peg_monitored_tokens {
+    id                   BigInt                 @id @default(autoincrement())
+    symbol               String                 @db.VarChar
+    address              String                 @unique @db.VarChar
+    peg_type             String                 @db.VarChar // "USD", "ETH", "BTC"
+    ref_address          String?                @db.VarChar // address of reference token (WETH, WBTC) - null for USD
+    warning_pct          Float                  @default(0.5)
+    critical_pct         Float                  @default(1.0)
+    active               Boolean                @default(true)
+    peg_sanity_snapshots peg_sanity_snapshots[]
 
-    @@index([market_id])
+    @@schema("global")
+}
+
+model peg_sanity_snapshots {
+    id            BigInt               @id @default(autoincrement())
+    token         peg_monitored_tokens @relation(fields: [token_id], references: [id])
+    token_id      BigInt
+    price         Float
+    ref_price     Float
+    deviation_pct Float
+    timestamp     DateTime             @db.Timestamp
+
+    @@index([token_id])
     @@index([timestamp])
     @@schema("global")
 }
