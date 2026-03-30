@@ -688,7 +688,7 @@ model lp_task {
     name            String
     action_type     String           @db.VarChar
     protocol        String
-    token           tracked_erc20    @relation(fields: [token_address], references: [address])
+    token           tracked_erc20?   @relation(fields: [token_address], references: [address]) // ← add ?
     token_address   String?
     point_rate      Decimal          @db.Decimal(8, 6)
     description     String
