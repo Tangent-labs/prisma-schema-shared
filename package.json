@@ -3,10 +3,20 @@
   "version": "1.0.0",
   "description": "Shared Prisma schema for multiple repositories",
   "main": "schema.prisma",
-  "files": ["schema.prisma"],
+  "files": [
+    "schema.prisma"
+  ],
   "license": "MIT",
   "private": false,
   "publishConfig": {
     "access": "public"
+  },
+  "devDependencies": {
+    "husky": "9.1.7",
+    "prettier": "3.8.1",
+    "prettier-plugin-prisma": "5.0.0"
+  },
+  "scripts": {
+    "prepare": "husky"
   }
 }
