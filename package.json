@@ -15,5 +15,8 @@
     "husky": "9.1.7",
     "prettier": "3.8.1",
     "prettier-plugin-prisma": "5.0.0"
+  },
+  "scripts": {
+    "prepare": "husky"
   }
 }
