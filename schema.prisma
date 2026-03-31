@@ -690,6 +690,7 @@ model lp_task {
     protocol        String
     token           tracked_erc20    @relation(fields: [token_address], references: [address])
     token_address   String
+    can_zap         Boolean
     point_rate      Decimal          @db.Decimal(8, 6)
     description     String
     url             String
