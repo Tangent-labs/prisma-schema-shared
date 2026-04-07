@@ -197,6 +197,7 @@ model global_indicators {
   args   String                     @db.VarChar
   values global_indicators_values[]
 
+  @@index([key])
   @@schema("global")
 }
 
@@ -207,6 +208,7 @@ model global_indicators_values {
   global_indicator_id BigInt
   global_indicator    global_indicators @relation(fields: [global_indicator_id], references: [id])
 
+  @@index([global_indicator_id, timestamp(sort: Desc)])
   @@schema("global")
 }
 
@@ -264,6 +266,7 @@ model peg_keeper_history {
   pegKeeper     peg_keeper @relation(fields: [peg_keeper_id], references: [id])
   peg_keeper_id BigInt
 
+  @@index([date])
   @@index([peg_keeper_id, date])
   @@schema("global")
 }
@@ -278,6 +281,7 @@ model wrapped_stable {
   wrappedStableHistories wrapped_stable_history[]
 
   @@index([id])
+  @@index([is_active])
   @@schema("global")
 }
 
@@ -289,6 +293,7 @@ model wrapped_stable_history {
   wrapped_stable    wrapped_stable @relation(fields: [wrapped_stable_id], references: [id])
   wrapped_stable_id BigInt
 
+  @@index([date])
   @@index([wrapped_stable_id, date])
   @@schema("global")
 }
@@ -702,6 +707,7 @@ model lp_task {
   lp_user_tasks   lp_user_tasks[]
   lp_user_points  lp_user_points[]
 
+  @@index([start_date])
   @@schema("points")
 }
 
@@ -729,6 +735,7 @@ model tracked_erc20 {
   transfer_events transfer_events[]
   total_supplies  total_supplies[]
 
+  @@index([name])
   @@schema("points")
 }
 
@@ -818,6 +825,7 @@ model onchain_boost_user {
   user_address String @db.VarChar
   type         String @db.VarChar
 
+  @@index([user_address])
   @@schema("points")
 }
 
@@ -1058,6 +1066,7 @@ model add_liquidity_events {
   block_id      Int
   tx_hash       String      @db.VarChar(66)
 
+  @@index([block_id])
   @@index([provider, block_id])
   @@schema("predeposit")
 }
@@ -1097,6 +1106,7 @@ model predeposit_users {
   is_private     Boolean
   signature_date DateTime? @db.Timestamp
 
+  @@index([is_private])
   @@index([is_private, signature])
   @@schema("predeposit")
 }
