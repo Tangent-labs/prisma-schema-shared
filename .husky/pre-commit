@@ -1,1 +1,1 @@
-npx prettier --write schema.prisma
+npx lint-staged
