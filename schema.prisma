@@ -313,6 +313,27 @@ model usg_global_history {
   @@schema("global")
 }
 
+enum IndexerExecutionStatus {
+    SUCCESS
+    FAILED
+
+    @@schema("global")
+}
+
+model indexer_execution_log {
+    id            BigInt                 @id @default(autoincrement())
+    indexer_name  String                 @db.VarChar
+    status        IndexerExecutionStatus
+    started_at    DateTime               @db.Timestamp
+    finished_at   DateTime               @db.Timestamp
+    error_message String?                @db.VarChar
+
+    @@index([indexer_name])
+    @@index([status])
+    @@index([started_at])
+    @@schema("global")
+}
+
 // ========================================
 // =============== EVENTS ===============
 // ========================================
