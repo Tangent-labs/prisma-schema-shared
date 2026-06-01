@@ -314,24 +314,24 @@ model usg_global_history {
 }
 
 enum IndexerExecutionStatus {
-    SUCCESS
-    FAILED
+  SUCCESS
+  FAILED
 
-    @@schema("global")
+  @@schema("global")
 }
 
 model indexer_execution_log {
-    id            BigInt                 @id @default(autoincrement())
-    indexer_name  String                 @db.VarChar
-    status        IndexerExecutionStatus
-    started_at    DateTime               @db.Timestamp
-    finished_at   DateTime               @db.Timestamp
-    error_message String?                @db.VarChar
+  id            BigInt                 @id @default(autoincrement())
+  indexer_name  String                 @db.VarChar
+  status        IndexerExecutionStatus
+  started_at    DateTime               @db.Timestamp
+  finished_at   DateTime               @db.Timestamp
+  error_message String?                @db.VarChar
 
-    @@index([indexer_name])
-    @@index([status])
-    @@index([started_at])
-    @@schema("global")
+  @@index([indexer_name])
+  @@index([status])
+  @@index([started_at])
+  @@schema("global")
 }
 
 // ========================================
@@ -823,6 +823,7 @@ enum PriceSourceType {
   ERC4626
   chainview
   market
+  balancerApi
 
   @@schema("points")
 }
