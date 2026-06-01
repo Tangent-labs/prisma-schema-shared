@@ -331,6 +331,7 @@ model indexer_execution_log {
   @@index([indexer_name])
   @@index([status])
   @@index([started_at])
+  @@index([finished_at])
   @@schema("global")
 }
 
