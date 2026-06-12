@@ -825,6 +825,7 @@ enum PriceSourceType {
   chainview
   market
   balancerApi
+  spectraApi
 
   @@schema("points")
 }
