@@ -44,6 +44,9 @@ model usg_markets {
   position_snapshots      position_snapshots[]
   market_config           market_config[]
   oracle_sanity_snapshots oracle_sanity_snapshots[]
+  rewardNotifieds         reward_notified[]
+  checkpointIrs           checkpoint_ir[]
+  dailyRevenuesMarket     daily_revenues_market[]
 
   @@index([contract_address])
   @@schema("global")
@@ -332,6 +335,51 @@ model indexer_execution_log {
   @@index([status])
   @@index([started_at])
   @@index([finished_at])
+  @@schema("global")
+}
+
+model revenues_tokens {
+  id                  BigInt                  @id @default(autoincrement())
+  address             String                  @db.VarChar
+  name                String                  @db.VarChar
+  decimals            Int
+  rewardNotifieds     reward_notified[]
+  revenuesTokenPrices revenues_token_prices[]
+
+  @@schema("global")
+}
+
+model revenues_token_prices {
+  id       BigInt          @id @default(autoincrement())
+  day      DateTime        @db.Timestamp
+  price    Float
+  token    revenues_tokens @relation(fields: [token_id], references: [id])
+  token_id BigInt
+
+  @@index([day])
+  @@schema("global")
+}
+
+model daily_revenues {
+  id              BigInt   @id @default(autoincrement())
+  day             DateTime @db.Timestamp
+  ir_revenue      Float
+  rewards_revenue Float
+
+  @@index([day])
+  @@schema("global")
+}
+
+model daily_revenues_market {
+  id              BigInt      @id @default(autoincrement())
+  market          usg_markets @relation(fields: [market_id], references: [id])
+  market_id       BigInt
+  day             DateTime    @db.Timestamp
+  ir_revenue      Float
+  rewards_revenue Float
+
+  @@index([day])
+  @@index([market_id])
   @@schema("global")
 }
 
@@ -671,6 +719,37 @@ model transfer_events {
   tx_hash       String        @db.VarChar(66)
 
   @@index([block_id])
+  @@schema("events")
+}
+
+model checkpoint_ir {
+  id         BigInt      @id @default(autoincrement())
+  market     usg_markets @relation(fields: [market_id], references: [id])
+  market_id  BigInt
+  interest   String      @db.VarChar
+  newIndex   String      @db.VarChar
+  block_date DateTime    @db.Timestamp
+  block_id   Int
+  tx_hash    String      @db.VarChar(66)
+
+  @@index([block_date])
+  @@schema("events")
+}
+
+model reward_notified {
+  id            BigInt          @id @default(autoincrement())
+  market        usg_markets     @relation(fields: [market_id], references: [id])
+  market_id     BigInt
+  token         revenues_tokens @relation(fields: [token_id], references: [id])
+  token_id      BigInt
+  streamed      String          @db.VarChar
+  harvester_fee String          @db.VarChar
+  reward_cut    String          @db.VarChar
+  block_date    DateTime        @db.Timestamp
+  block_id      Int
+  tx_hash       String          @db.VarChar(66)
+
+  @@index([block_date])
   @@schema("events")
 }
 
