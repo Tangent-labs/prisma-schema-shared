@@ -383,6 +383,20 @@ model daily_revenues_market {
   @@schema("global")
 }
 
+// Dynamic banners shown in the dApp carousel, managed from Jessika.
+// Every upload replaces the whole table, so `slot` is both the primary key
+// and the display order, and is constrained to 1..3 by the API.
+model feature_banner {
+  slot       Int      @id
+  text       String   @db.VarChar
+  link       String   @db.VarChar
+  image      Bytes
+  image_mime String   @db.VarChar
+  updated_at DateTime @default(now()) @db.Timestamp
+
+  @@schema("global")
+}
+
 // ========================================
 // =============== EVENTS ===============
 // ========================================
