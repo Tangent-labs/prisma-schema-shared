@@ -47,6 +47,7 @@ model usg_markets {
   rewardNotifieds         reward_notified[]
   checkpointIrs           checkpoint_ir[]
   dailyRevenuesMarket     daily_revenues_market[]
+  dailyVolumesMarket      daily_volumes_market[]
 
   @@index([contract_address])
   @@schema("global")
@@ -360,6 +361,20 @@ model revenues_token_prices {
   @@schema("global")
 }
 
+// Dynamic banners shown in the dApp carousel, managed from Jessika.
+// Every upload replaces the whole table, so `slot` is both the primary key
+// and the display order, and is constrained to 1..3 by the API.
+model feature_banner {
+  slot       Int      @id
+  text       String   @db.VarChar
+  link       String   @db.VarChar
+  image      Bytes
+  image_mime String   @db.VarChar
+  updated_at DateTime @default(now()) @db.Timestamp
+
+  @@schema("global")
+}
+
 model daily_revenues {
   id              BigInt   @id @default(autoincrement())
   day             DateTime @db.Timestamp
@@ -383,17 +398,49 @@ model daily_revenues_market {
   @@schema("global")
 }
 
-// Dynamic banners shown in the dApp carousel, managed from Jessika.
-// Every upload replaces the whole table, so `slot` is both the primary key
-// and the display order, and is constrained to 1..3 by the API.
-model feature_banner {
-  slot       Int      @id
-  text       String   @db.VarChar
-  link       String   @db.VarChar
-  image      Bytes
-  image_mime String   @db.VarChar
-  updated_at DateTime @default(now()) @db.Timestamp
+model daily_volumes {
+  id               BigInt   @id @default(autoincrement())
+  day              DateTime @db.Timestamp
+  collateral_in    Float
+  collateral_out   Float
+  debt_in          Float
+  debt_out         Float
+  lp_liquidity_in  Float
+  lp_liquidity_out Float
+  lp_swap          Float
+  susg_in          Float
+  susg_out         Float
 
+  @@index([day])
+  @@schema("global")
+}
+
+model daily_volumes_lp {
+  id            BigInt      @id @default(autoincrement())
+  usg_lp        usg_lp_keys @relation(fields: [usg_lp_id], references: [id])
+  usg_lp_id     BigInt
+  day           DateTime    @db.Timestamp
+  liquidity_in  Float
+  liquidity_out Float
+  swap          Float
+
+  @@index([day])
+  @@index([usg_lp_id])
+  @@schema("global")
+}
+
+model daily_volumes_market {
+  id             BigInt      @id @default(autoincrement())
+  market         usg_markets @relation(fields: [market_id], references: [id])
+  market_id      BigInt
+  day            DateTime    @db.Timestamp
+  collateral_in  Float
+  collateral_out Float
+  debt_in        Float
+  debt_out       Float
+
+  @@index([day])
+  @@index([market_id])
   @@schema("global")
 }
 
@@ -420,6 +467,7 @@ model borrow {
   block_id        Int
   tx_hash         String      @db.VarChar(66)
 
+  @@index([block_date])
   @@index([account], map: "borrow_account")
   @@index([market_id], map: "borrow_market_id")
   @@schema("events")
@@ -435,6 +483,7 @@ model deposit {
   block_id      Int
   tx_hash       String      @db.VarChar(66)
 
+  @@index([block_date])
   @@index([account], map: "deposit_account")
   @@index([market_id], map: "deposit_market_id")
   @@schema("events")
@@ -452,6 +501,7 @@ model zap_deposit {
   block_id      Int
   tx_hash       String      @db.VarChar(66)
 
+  @@index([block_date])
   @@index([account], map: "zap_deposit_account")
   @@index([market_id], map: "zap_deposit_market_id")
   @@schema("events")
@@ -469,6 +519,7 @@ model deposit_and_borrow {
   block_id      Int
   tx_hash       String      @db.VarChar(66)
 
+  @@index([block_date])
   @@index([account], map: "deposit_and_borrow_account")
   @@index([market_id], map: "deposit_and_borrow_market_id")
   @@schema("events")
@@ -488,6 +539,7 @@ model zap_deposit_and_borrow {
   block_id      Int
   tx_hash       String      @db.VarChar(66)
 
+  @@index([block_date])
   @@index([account], map: "zap_deposit_and_borrow_account")
   @@index([market_id], map: "zap_deposit_and_borrow_market_id")
   @@schema("events")
@@ -503,6 +555,7 @@ model withdraw {
   block_id         Int
   tx_hash          String      @db.VarChar(66)
 
+  @@index([block_date])
   @@index([account], map: "withdraw_account")
   @@index([market_id], map: "withdraw_market_id")
   @@schema("events")
@@ -520,6 +573,7 @@ model repay {
   block_id      Int
   tx_hash       String      @db.VarChar(66)
 
+  @@index([block_date])
   @@index([account], map: "repay_account")
   @@index([market_id], map: "repay_market_id")
   @@schema("events")
@@ -537,6 +591,7 @@ model repay_and_withdraw {
   block_id         Int
   tx_hash          String      @db.VarChar(66)
 
+  @@index([block_date])
   @@index([account], map: "repay_and_withdraw_account")
   @@index([market_id], map: "repay_and_withdraw_market_id")
   @@schema("events")
@@ -556,6 +611,7 @@ model zap_repay {
   block_id      Int
   tx_hash       String      @db.VarChar(66)
 
+  @@index([block_date])
   @@index([account], map: "zap_repay_account")
   @@index([market_id], map: "zap_repay_market_id")
   @@schema("events")
@@ -575,6 +631,7 @@ model zap_repay_and_withdraw {
   block_id         Int
   tx_hash          String      @db.VarChar(66)
 
+  @@index([block_date])
   @@index([account], map: "zap_repay_and_withdraw_account")
   @@index([market_id], map: "zap_repay_and_withdraw_market_id")
   @@schema("events")
@@ -593,6 +650,7 @@ model leverage {
   block_id        Int
   tx_hash         String      @db.VarChar(66)
 
+  @@index([block_date])
   @@index([account], map: "leverage_account")
   @@index([market_id], map: "leverage_market_id")
   @@schema("events")
@@ -614,6 +672,7 @@ model zap_leverage {
   block_id           Int
   tx_hash            String      @db.VarChar(66)
 
+  @@index([block_date])
   @@index([account], map: "zap_leverage_account")
   @@index([market_id], map: "zap_leverage_market_id")
   @@schema("events")
@@ -633,6 +692,7 @@ model liquidate {
   block_id              Int
   tx_hash               String      @db.VarChar(66)
 
+  @@index([block_date])
   @@index([account], map: "liquidate_account")
   @@index([market_id], map: "liquidate_market_id")
   @@schema("events")
@@ -651,6 +711,7 @@ model self_liquidate {
   block_id              Int
   tx_hash               String      @db.VarChar(66)
 
+  @@index([block_date])
   @@index([account], map: "self_liquidate_account")
   @@index([market_id], map: "self_liquidate_market_id")
   @@schema("events")
@@ -732,6 +793,7 @@ model transfer_events {
   block_id      Int
   tx_hash       String        @db.VarChar(66)
 
+  @@index([token_address, block_date])
   @@index([block_id])
   @@schema("events")
 }
@@ -764,6 +826,42 @@ model reward_notified {
   tx_hash       String          @db.VarChar(66)
 
   @@index([block_date])
+  @@schema("events")
+}
+
+model remove_liquidity {
+  id            BigInt      @id @default(autoincrement())
+  usg_lp        usg_lp_keys @relation(fields: [usg_lp_id], references: [id])
+  usg_lp_id     BigInt
+  provider      String      @db.VarChar
+  token0_amount String      @db.VarChar
+  token1_amount String      @db.VarChar
+  block_date    DateTime    @db.Timestamp
+  block_id      Int
+  tx_hash       String      @db.VarChar(66)
+
+  @@index([block_date])
+  @@index([block_id])
+  @@index([provider, block_id])
+  @@schema("events")
+}
+
+model token_exchange {
+  id            BigInt      @id @default(autoincrement())
+  usg_lp        usg_lp_keys @relation(fields: [usg_lp_id], references: [id])
+  usg_lp_id     BigInt
+  buyer         String      @db.VarChar
+  sold_id       Int
+  tokens_sold   String      @db.VarChar
+  bought_id     Int
+  tokens_bought String      @db.VarChar
+  block_date    DateTime    @db.Timestamp
+  block_id      Int
+  tx_hash       String      @db.VarChar(66)
+
+  @@index([block_date])
+  @@index([block_id])
+  @@index([buyer, block_id])
   @@schema("events")
 }
 
@@ -1183,6 +1281,7 @@ model add_liquidity_events {
   block_id      Int
   tx_hash       String      @db.VarChar(66)
 
+  @@index([block_date])
   @@index([block_id])
   @@index([provider, block_id])
   @@schema("predeposit")
@@ -1192,11 +1291,20 @@ model usg_lp_keys {
   id                         BigInt                       @id @default(autoincrement())
   lp_address                 String                       @db.VarChar
   lp_name                    String                       @db.VarChar
+  // Coin order and decimals are fixed at pool creation and read once on chain when seeding,
+  // every runtime path reads them from here
+  token_0                    String?
+  token_0_decimals           Int?
+  token_1                    String?
+  token_1_decimals           Int?
   add_liquidity              add_liquidity_events[]
   accountedBalances          accounted_balances[]
   totalDepositeds            accounted_total[]
   accountedTotalHistories    accounted_total_history[]
   accountedBalancesHistories accounted_balances_history[]
+  removeLiquidityEvents      remove_liquidity[]
+  tokenExchangeEvents        token_exchange[]
+  dailyVolumesLp             daily_volumes_lp[]
 
   @@schema("predeposit")
 }
