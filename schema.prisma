@@ -317,6 +317,18 @@ model usg_global_history {
   @@schema("global")
 }
 
+model usg_lp_history {
+  id            BigInt      @id @default(autoincrement())
+  usg_lp        usg_lp_keys @relation(fields: [usg_lp_id], references: [id])
+  usg_lp_id     BigInt
+  date          DateTime    @db.Timestamp
+  liquidity_usd Float
+
+  @@index([usg_lp_id, date])
+  @@index([date])
+  @@schema("global")
+}
+
 enum IndexerExecutionStatus {
   SUCCESS
   FAILED
@@ -1305,6 +1317,7 @@ model usg_lp_keys {
   removeLiquidityEvents      remove_liquidity[]
   tokenExchangeEvents        token_exchange[]
   dailyVolumesLp             daily_volumes_lp[]
+  usgLpHistories             usg_lp_history[]
 
   @@schema("predeposit")
 }
